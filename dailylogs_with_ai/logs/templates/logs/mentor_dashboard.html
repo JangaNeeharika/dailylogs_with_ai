@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mentor Dashboard – DailyLog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0d1117;
+      --paper:      #f8f7f4;
+      --cream:      #eeeae2;
+      --white:      #ffffff;
+      --sage:       #3d6b4f;
+      --sage-light: #5a9070;
+      --sage-pale:  #eaf4ee;
+      --amber:      #d4922a;
+      --amber-pale: #fdf3e3;
+      --coral:      #c94f3a;
+      --coral-pale: #fdecea;
+      --blue:       #2e5fa3;
+      --blue-pale:  #e8eef8;
+      --muted:      #6b6860;
+      --border:     #e0dbd0;
+      --shadow-sm:  0 1px 4px rgba(13,17,23,.07);
+      --shadow:     0 3px 16px rgba(13,17,23,.09);
+      --shadow-lg:  0 8px 40px rgba(13,17,23,.13);
+    }
+
+    body { background: var(--paper); font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; }
+    h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--ink); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 36px; height: 64px; position: sticky; top: 0; z-index: 200;
+    }
+    .topbar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 21px; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .logo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sage-light); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .user-pill { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 100px; padding: 6px 16px 6px 8px; }
+    .user-avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: var(--sage); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; font-family: 'Syne', sans-serif; }
+    .user-name { font-size: 13px; color: #fff; font-weight: 500; }
+    .mentor-badge { background: rgba(61,107,79,.35); color: #7dd9a0; border-radius: 100px; padding: 3px 10px; font-size: 11px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: .04em; }
+    .logout-btn { text-decoration: none; background: var(--coral); color: white; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; transition: .2s; border: 1px solid rgba(255,255,255,.1); }
+    .logout-btn:hover { background: #a63e2d; transform: translateY(-1px); }
+
+    /* LAYOUT */
+    .main { display: flex; min-height: calc(100vh - 64px); }
+
+    /* SIDEBAR */
+    .sidebar { width: 270px; flex-shrink: 0; background: #111827; border-right: 1px solid #1f2937; padding: 28px 0; overflow-y: auto; position: sticky; top: 64px; height: calc(100vh - 64px); }
+    .sidebar-section-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .1em; padding: 0 22px; margin-bottom: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 14px 22px; cursor: pointer; transition: .2s; font-size: 14px; font-weight: 600; color: #cbd5e1; border-left: 3px solid transparent; margin: 4px 10px; border-radius: 12px; }
+    .nav-item:hover { background: #1e293b; color: white; }
+    .nav-item.active { background: linear-gradient(135deg, #3d6b4f, #5a9070); color: white; border-left-color: #7dd9a0; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+    .nav-icon { font-size: 17px; width: 22px; text-align: center; }
+    .sidebar-divider { height: 1px; background: #1f2937; margin: 18px 22px; }
+    .member-list { padding: 0 14px; }
+    .member-list-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: .15s; }
+    .member-list-item:hover { background: rgba(255,255,255,.05); }
+    .mavatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; color: #fff; }
+    .mavatar-info { flex: 1; min-width: 0; }
+    .mavatar-name { font-size: 13px; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mavatar-sub { font-size: 11px; color: #64748b; }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage-light); flex-shrink: 0; }
+
+    /* CONTENT */
+    .content { flex: 1; padding: 36px; overflow-x: hidden; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* PAGE HEADER */
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 28px; font-weight: 800; letter-spacing: -.4px; }
+    .page-sub { color: var(--muted); font-size: 15px; margin-top: 4px; }
+
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+    @media(max-width:900px){ .stats-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 22px 24px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: var(--accent-pale, var(--sage-pale)); opacity: .7; }
+    .stat-icon { font-size: 22px; margin-bottom: 12px; position: relative; z-index: 1; }
+    .stat-val { font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 4px; position: relative; z-index: 1; }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; position: relative; z-index: 1; }
+    .stat-card.green { --accent-pale: #eaf4ee; } .stat-card.green .stat-val { color: var(--sage); }
+    .stat-card.amber { --accent-pale: #fdf3e3; } .stat-card.amber .stat-val { color: var(--amber); }
+    .stat-card.blue  { --accent-pale: #e8eef8; } .stat-card.blue  .stat-val { color: var(--blue); }
+    .stat-card.coral { --accent-pale: #fdecea; } .stat-card.coral .stat-val { color: var(--coral); }
+
+    /* MEMBERS GRID */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .section-title { font-size: 18px; font-weight: 800; }
+    .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; margin-bottom: 36px; }
+    .member-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow-sm); cursor: pointer; transition: .2s; }
+    .member-card:hover { border-color: var(--sage); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .member-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .member-big-avatar { width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; font-family: 'Syne', sans-serif; color: #fff; }
+    .member-card-name { font-size: 15px; font-weight: 700; }
+    .member-card-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .member-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mcs { background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+    .mcs-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+    .mcs-label { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .member-card-footer { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .avg-mark { display: flex; align-items: center; gap: 6px; }
+    .stars-display { color: var(--amber); font-size: 13px; }
+    .avg-label { font-size: 12px; color: var(--muted); }
+    .view-profile-btn { font-size: 12px; color: var(--sage); font-weight: 700; background: var(--sage-pale); border: none; border-radius: 8px; padding: 5px 12px; cursor: pointer; font-family: 'Syne', sans-serif; transition: .15s; }
+    .view-profile-btn:hover { background: var(--sage); color: #fff; }
+
+    /* CALENDAR */
+    .cal-wrap { background: var(--white); border: 1.5px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+    .cal-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    .cal-month-label { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; flex: 1; }
+    .cal-btn { background: var(--paper); border: 1.5px solid var(--border); border-radius: 10px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: .15s; }
+    .cal-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+    .cal-dh { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 6px 0; font-family: 'Syne', sans-serif; text-transform: uppercase; letter-spacing: .07em; }
+    .cal-cell { min-height: 74px; border: 1.5px solid var(--border); border-radius: 11px; padding: 7px 6px; cursor: pointer; transition: .15s; background: var(--white); display: flex; flex-direction: column; }
+    .cal-cell:hover { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(61,107,79,.1); }
+    .cal-cell.other  { background: var(--cream); opacity: .4; pointer-events: none; }
+    .cal-cell.today  { border-color: var(--sage); border-width: 2px; }
+    .cal-cell.sel    { border-color: var(--blue); border-width: 2px; background: var(--blue-pale); }
+    .cal-cell.hasent { background: #f4fbf6; }
+    .cal-num { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .today-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--sage); color: #fff; font-size: 11px; }
+    .cal-dots { display: flex; flex-wrap: wrap; gap: 3px; }
+    .cal-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--sage-light); }
+    .cal-cnt  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* DAY PANEL */
+    .day-panel { background: var(--white); border: 1.5px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: var(--shadow-sm); }
+    .day-panel-title { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+    .day-panel-sub   { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+    .entry-row { border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; transition: .15s; }
+    .entry-row:hover { border-color: var(--sage); }
+    .entry-row-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .er-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; color: #fff; }
+    .er-name  { font-size: 12px; font-weight: 700; color: var(--sage); text-transform: uppercase; letter-spacing: .05em; }
+    .er-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+    .er-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+    .er-meta  { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .tag      { background: rgba(61,107,79,.1); color: var(--sage); border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 500; }
+    .hbadge   { background: var(--amber-pale); color: var(--amber); border: 1px solid #f0d4a0; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+    .mark-section { background: var(--paper); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .mark-label { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+    .star-rating { display: flex; gap: 4px; }
+    .star { font-size: 22px; cursor: pointer; transition: .1s; color: #d0ccc0; user-select: none; }
+    .star.lit  { color: var(--amber); }
+    .star:hover { transform: scale(1.2); }
+    .mark-note { flex: 1; min-width: 160px; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--white); outline: none; }
+    .mark-note:focus { border-color: var(--sage); }
+    .save-mark-btn { padding: 8px 18px; border-radius: 9px; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; background: var(--sage); color: #fff; transition: .15s; white-space: nowrap; }
+    .save-mark-btn:hover { background: #2e5a3e; }
+    .saved-stars { color: var(--amber); font-size: 16px; }
+    .saved-note-text { font-size: 13px; color: var(--muted); font-style: italic; }
+    .edit-mark-btn { font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600; background: none; border: none; padding: 0; }
+
+    /* MEMBER PROFILE */
+    .profile-hero { background: var(--white); border: 1.5px solid var(--border); border-radius: 20px; padding: 32px; box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; gap: 28px; margin-bottom: 28px; flex-wrap: wrap; }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif; color: #fff; }
+    .profile-name { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+    .profile-role { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+    .profile-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .ps { text-align: center; }
+    .ps-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; }
+    .ps-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ps-val.green { color: var(--sage); }
+    .ps-val.amber { color: var(--amber); }
+    .ps-val.blue  { color: var(--blue); }
+    .back-btn { display: flex; align-items: center; gap: 7px; background: var(--paper); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 16px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; transition: .15s; color: var(--ink); margin-bottom: 22px; }
+    .back-btn:hover { border-color: var(--ink); }
+    .profile-entries-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+    .profile-entry-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
+    .pe-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+    .pe-date { font-size: 12px; color: var(--muted); background: var(--paper); border-radius: 7px; padding: 4px 10px; }
+    .pe-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+    .pe-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .pe-mark  { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .pe-mark-stars { color: var(--amber); font-size: 14px; }
+    .pe-mark-note  { font-size: 12px; color: var(--muted); font-style: italic; }
+    .no-mark { font-size: 12px; color: #bbb; font-style: italic; }
+
+    /* ALL LOGS */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-bar input, .filter-bar select { padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--white); outline: none; transition: .15s; }
+    .filter-bar input { flex: 1; min-width: 180px; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--sage); }
+    .all-entry-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 22px; box-shadow: var(--shadow-sm); margin-bottom: 12px; display: flex; gap: 18px; align-items: flex-start; }
+    .date-box { min-width: 52px; text-align: center; background: var(--paper); border-radius: 10px; padding: 10px 6px; flex-shrink: 0; }
+    .date-day { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
+    .date-mon { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ═══════════════ SCRUM REPORT ═══════════════ */
+    .scrum-toolbar {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+      padding: 18px 22px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    }
+    .scrum-toolbar label { font-size: 13px; font-weight: 700; color: var(--ink); font-family: 'Syne', sans-serif; }
+    .scrum-toolbar input[type="date"] {
+      padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--white); outline: none;
+    }
+    .scrum-toolbar input[type="date"]:focus { border-color: var(--sage); }
+    .scrum-today-btn, .scrum-download-btn {
+      border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 700;
+      font-family: 'Syne', sans-serif; cursor: pointer; transition: .15s; display: flex; align-items: center; gap: 7px;
+    }
+    .scrum-today-btn { background: var(--sage-pale); color: var(--sage); }
+    .scrum-today-btn:hover { background: var(--sage); color: #fff; }
+    .scrum-download-btn { background: var(--ink); color: #fff; margin-left: auto; }
+    .scrum-download-btn:hover { background: #1f2937; }
+    .scrum-meta-pill { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+    .scrum-count-badge {
+      background: var(--blue-pale); color: var(--blue); border-radius: 100px;
+      padding: 4px 12px; font-size: 12px; font-weight: 700; font-family: 'Syne', sans-serif;
+    }
+
+    /* The printable report itself */
+    .scrum-report {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 22px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .scrum-report-banner {
+      display: flex; align-items: center; gap: 22px; padding: 28px 32px;
+      background: linear-gradient(135deg, #eef0fb, #f6eef5);
+      border-bottom: 2px solid var(--border); flex-wrap: wrap;
+    }
+    .scrum-report-icon {
+      width: 66px; height: 66px; border-radius: 16px; background: var(--ink); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 30px;
+    }
+    .scrum-report-title { font-family: 'Syne', sans-serif; font-size: 25px; font-weight: 800; letter-spacing: -.3px; color: var(--ink); }
+    .scrum-report-dateline {
+      display: flex; gap: 18px; align-items: center; margin-top: 9px; flex-wrap: wrap;
+      font-size: 14px; color: var(--muted);
+    }
+    .scrum-report-dateline b { color: var(--ink); font-weight: 700; }
+    .scrum-report-dateline .sep { color: var(--border); }
+    .scrum-report-stats { margin-left: auto; display: flex; gap: 22px; flex-wrap: wrap; }
+    .srs { text-align: center; }
+    .srs-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+    .srs-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .scrum-rows-removed-placeholder { display: none; }
+
+    .scrum-table-wrap { overflow-x: auto; }
+    .scrum-table { width: 100%; border-collapse: collapse; min-width: 820px; }
+    .scrum-table thead th {
+      background: var(--paper); text-align: left; padding: 16px 22px;
+      font-family: 'Syne', sans-serif; font-size: 13.5px; font-weight: 800;
+      border-bottom: 2px solid var(--border); white-space: nowrap;
+    }
+    .scrum-th-flex { display: flex; align-items: center; gap: 9px; }
+    .scrum-th-num {
+      width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .scrum-table th.col-member   { color: var(--ink); }
+    .scrum-table th.col-yest     { color: var(--blue); }
+    .scrum-table th.col-today    { color: var(--sage); }
+    .scrum-table th.col-hurdle   { color: var(--coral); }
+
+    .scrum-table tbody tr { border-bottom: 1px solid var(--border); transition: .12s; }
+    .scrum-table tbody tr:last-child { border-bottom: none; }
+    .scrum-table tbody tr:nth-child(even) { background: #fbfaf7; }
+    .scrum-table tbody tr.row-unavailable { background: #f6f4ee; }
+    .scrum-table tbody tr.row-hurdle { background: #fdf6f4; }
+    .scrum-table tbody tr:hover { background: var(--sage-pale); }
+
+    .scrum-table td { padding: 18px 22px; vertical-align: top; font-size: 13.5px; line-height: 1.65; color: var(--ink); }
+    .scrum-member-cell { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+    .scrum-avatar { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; font-family: 'Syne', sans-serif; color: #fff; }
+    .scrum-member-name { font-family: 'Syne', sans-serif; font-size: 14.5px; font-weight: 800; color: var(--ink); }
+    .scrum-member-role { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+    .scrum-bullets { list-style: none; padding: 0; margin: 0; }
+    .scrum-bullets li { position: relative; padding-left: 16px; margin-bottom: 7px; color: var(--ink); }
+    .scrum-bullets li::before { content: '•'; position: absolute; left: 0; color: var(--muted); font-weight: 700; }
+    .scrum-bullets li:last-child { margin-bottom: 0; }
+    .scrum-bullets.hurdle li::before { color: var(--coral); }
+    .scrum-bullets .none { color: #b8b3a6; font-style: italic; }
+    .scrum-bullets .none::before { color: #b8b3a6; }
+    .scrum-meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .scrum-unavail-text { color: var(--muted); font-style: italic; }
+
+    .scrum-empty-state { text-align: center; padding: 60px 32px; color: var(--muted); background: var(--white); border: 1.5px dashed var(--border); border-radius: 16px; }
+
+    @media (max-width: 700px) {
+      .scrum-row { grid-template-columns: 1fr; }
+      .scrum-row-member { border-right: none; border-bottom: 1px solid var(--border); }
+      .scrum-report-stats { margin-left: 0; width: 100%; }
+    }
+
+    @media print {
+      .topbar, .sidebar, .scrum-toolbar, .nav-item { display: none !important; }
+      .content { padding: 0 !important; }
+      .scrum-report { box-shadow: none; border: 1px solid #ccc; }
+    }
+
+    /* UTILS */
+    .hidden { display: none !important; }
+    .toast { position: fixed; bottom: 28px; right: 28px; background: var(--ink); color: #fff; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 999; animation: slideUp .3s ease; }
+    .ai-chat-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: min(420px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      display: none;
+      flex-direction: column;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.18);
+      z-index: 500;
+      overflow: hidden;
+    }
+    .ai-chat-container.open { display: flex; }
+    .ai-chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      color: #fff;
+      background: linear-gradient(135deg, #059669, #0d9488);
+    }
+    .ai-chat-header h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+    .ai-chat-close {
+      border: none;
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background .2s;
+    }
+    .ai-chat-close:hover { background: rgba(255,255,255,.28); }
+    .ai-btn {
+      border: none;
+      background: #059669;
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s, background .2s;
+    }
+    .ai-btn:hover { background: #047857; transform: translateY(-1px); }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .empty-state { text-align: center; padding: 60px 32px; color: var(--muted); }
+    .empty-icon  { font-size: 44px; margin-bottom: 12px; }
+    .empty-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .loading-state { text-align: center; padding: 40px; color: var(--muted); font-size: 15px; }
+    .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media(max-width:768px){ .sidebar { display: none; } .content { padding: 20px 16px; } .topbar { padding: 0 16px; } }
+
+    @media screen and (max-width: 768px){
+      .main{ flex-direction: column; }
+      .sidebar{ width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 1px solid #1f2937; }
+      .content{ padding: 16px; }
+      .stats-grid{ grid-template-columns: 1fr; }
+      .members-grid{ grid-template-columns: 1fr; }
+      .profile-hero{ flex-direction: column; align-items: center; text-align: center; }
+      .profile-stats{ justify-content: center; }
+      .all-entry-card{ flex-direction: column; }
+      .cal-grid{ gap: 3px; }
+      .cal-cell{ min-height: 60px; padding: 4px; }
+      .page-title{ font-size: 22px; }
+      .topbar{ padding: 0 12px; }
+      .user-name{ display: none; }
+      .filter-bar{ flex-direction: column; }
+      .filter-bar input, .filter-bar select{ width: 100%; }
+      .scrum-toolbar { flex-direction: column; align-items: stretch; }
+      .scrum-meta-pill { margin-left: 0; }
+      .scrum-header-stats { gap: 16px; }
+    }
+
+    @keyframes blink {
+  0%, 80%, 100% { opacity: 0; }
+  40% { opacity: 1; }
+}
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo"><span class="logo-dot"></span>DailyLog</div>
+  <div class="topbar-right">
+     <button class="ai-btn" onclick="toggleMentorAI()">
+       <h3> 🤖 AI Assistant</b></h3>
+    </button>
+    <div class="user-pill">
+      <div class="user-avatar-sm" id="mentor-avatar-initials">--</div>
+     
+      <span class="user-name" id="mentor-username">Loading…</span>
+      <span class="mentor-badge">MENTOR</span>
+
+
+    </div>
+    <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div style="padding:0 22px 18px">
+      <div class="sidebar-section-title">Navigation</div>
+
+    </div>
+    <div class="nav-item active" onclick="showPanel('overview')" id="nav-overview"><span class="nav-icon">🏠</span> Overview</div>
+    <div class="nav-item" onclick="showPanel('calendar')" id="nav-calendar"><span class="nav-icon">📅</span> Calendar View</div>
+    <div class="nav-item" onclick="showPanel('scrum')" id="nav-scrum"><span class="nav-icon">📝</span> Scrum Report</div>
+    <div class="nav-item" onclick="showPanel('alllogs')" id="nav-alllogs"><span class="nav-icon">📋</span> All Logs</div>
+    <div class="sidebar-divider"></div>
+    <div style="padding:0 22px 12px">
+      <div class="sidebar-section-title">Active Members</div>
+    </div>
+    <div class="member-list" id="sidebar-member-list">
+      <div class="loading-state"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+
+
+ 
+
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="panel-overview">
+      <div class="page-header">
+        <div class="page-title">Mentor Dashboard</div>
+        <div class="page-sub">Monitor team activity, assign marks and track progress.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon">👥</div><div class="stat-val" id="stat-members">–</div><div class="stat-label">Active Members</div></div>
+        <div class="stat-card amber"><div class="stat-icon">📋</div><div class="stat-val" id="stat-total">–</div><div class="stat-label">Total Entries</div></div>
+        <div class="stat-card blue"><div class="stat-icon">⏱</div><div class="stat-val" id="stat-hours">–</div><div class="stat-label">Total Hours Logged</div></div>
+        <div class="stat-card coral"><div class="stat-icon">📅</div><div class="stat-val" id="stat-today">–</div><div class="stat-label">Entries Today</div></div>
+      </div>
+      <div class="section-header"><div class="section-title">👥 Active Members</div></div>
+      <div class="members-grid" id="members-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><div>Loading members…</div></div>
+      </div>
+    </div>
+
+    <!-- CALENDAR PANEL -->
+    <div class="panel" id="panel-calendar">
+      <div class="page-header">
+        <div class="page-title">📅 Team Calendar</div>
+        <div class="page-sub">Browse daily work logs from your entire team.</div>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal-nav">
+          <div class="cal-month-label" id="cal-label"></div>
+          <div class="cal-btn" onclick="changeMonth(-1)">&#8249;</div>
+          <div class="cal-btn" onclick="changeMonth(1)">&#8250;</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="day-panel">
+        <div class="day-panel-title" id="day-title">Select a Date</div>
+        <div class="day-panel-sub"  id="day-sub">Team entries will appear here.</div>
+        <div id="day-entries"></div>
+      </div>
+    </div>
+
+    <!-- SCRUM REPORT PANEL (NEW) -->
+    <div class="panel" id="panel-scrum">
+      <div class="page-header">
+        <div class="page-title">📝 Daily Scrum Report</div>
+        <div class="page-sub">Standup-style report — today's work, tomorrow's plan, and hurdles for every team member.</div>
+      </div>
+
+      <div class="scrum-toolbar">
+        <label for="scrum-date">Report date</label>
+        <input type="date" id="scrum-date" onchange="renderScrumReport()"/>
+        <button class="scrum-today-btn" onclick="setScrumDateToday()">Today</button>
+        <div class="scrum-meta-pill">
+          <span class="scrum-count-badge" id="scrum-logged-count">0 logged</span>
+          <span id="scrum-total-count">of 0 members</span>
+        </div>
+        <button class="scrum-download-btn" onclick="downloadScrumReport()">⬇ Download report</button>
+      </div>
+
+      <div id="scrum-content"></div>
+    </div>
+
+    <!-- ALL LOGS PANEL -->
+    <div class="panel" id="panel-alllogs">
+      <div class="page-header">
+        <div class="page-title">All Logs</div>
+        <div class="page-sub">Browse and search every entry submitted by your team.</div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="search-q" placeholder="🔍  Search by name, title, tag…" oninput="renderAllLogs()"/>
+        <select id="member-filter" onchange="renderAllLogs()">
+          <option value="">All Members</option>
+        </select>
+      </div>
+      <div id="all-logs-list"></div>
+    </div>
+
+    <!-- MEMBER PROFILE PANEL -->
+    <div class="panel" id="panel-profile">
+      <button class="back-btn" onclick="showPanel('overview')">← Back to Overview</button>
+      <div id="profile-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="ai-chat-container" id="mentor-chatbot-card" aria-hidden="true">
+  <div class="ai-chat-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.4rem">🧑‍💼</span>
+      <div>
+        <h3 style="margin:0;font-size:1rem;font-weight:700">Team AI Assistant</h3>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,.85)">Ask about your team's activity, progress, and blockers</div>
+      </div>
+    </div>
+    <button class="ai-chat-close" onclick="toggleMentorAI()">Close</button>
+  </div>
+  <div id="mentor-chat-messages" style="height:340px;overflow-y:auto;padding:16px;background:#f0fdf4;display:flex;flex-direction:column;gap:10px;">
+    <div class="chat-msg ai" style="align-self:flex-start;max-width:88%;">
+      <div style="background:#fff;border:1px solid #d1fae5;border-radius:12px 12px 12px 0;padding:10px 14px;font-size:0.875rem;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        👋 Hello! I'm your team AI assistant. I have access to your team's recent logs and can help you:<br>
+        <ul style="margin:6px 0 0 16px;padding:0;">
+          <li>See who logged today and who didn't</li>
+          <li>Identify members with low mood or hours</li>
+          <li>Summarize what the team worked on</li>
+          <li>Flag blockers and impediments</li>
+          <li>Get insights on individual member performance</li>
+        </ul>
+        What do you want to know about your team?
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 16px;background:#ecfdf5;border-top:1px solid #d1fae5;display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="mentor-prompt-btn ai-btn" data-msg="Who logged today and who hasn't?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">📋 Today's logs</button>
+    <button class="mentor-prompt-btn ai-btn" data-msg="Which team members have been showing low mood recently?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">😟 Low mood members</button>
+    <button class="mentor-prompt-btn ai-btn" data-msg="Give me a summary of what the team worked on this week." style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">📊 Weekly summary</button>
+    <button class="mentor-prompt-btn ai-btn" data-msg="Who is working the most hours? Who is working the least?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">⏱ Hours breakdown</button>
+  </div>
+  <div style="padding:12px 14px;background:#fff;border-top:1px solid #d1fae5;display:flex;gap:8px;align-items:center;">
+    <input type="text" id="mentor-chat-input" placeholder="Ask about your team..." style="flex:1;border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;font-size:0.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#d1d5db'" />
+    <button id="mentor-chat-send" class="ai-btn" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:0.875rem;font-weight:500;">Send ➤</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   STATE — all populated from API calls below
+═══════════════════════════════════════════════════════ */
+const todayStr = new Date().toISOString().slice(0,10);
+
+let MEMBERS  = [];   // from /api/mentor/members/
+let entries  = [];   // from /api/mentor/logs/
+let marks    = {};   // { logId: { stars, note } }  — managed locally + persisted via API
+
+const MONTHS_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAYS_SHORT   = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selDate  = todayStr;
+
+/* Keywords used to auto-detect a blocker / impediment from free-text logs.
+   Tweak this list any time, or later replace with a real "blocker" field
+   on the backend log model for more reliable detection. */
+const BLOCKER_KEYWORDS = ['blocked', 'blocker', 'impediment', 'impediments', 'stuck', 'waiting on', 'unable to', 'issue with', 'issues', 'error', 'errors', 'can\'t proceed', 'cant proceed', 'problem with', 'facing'];
+
+/* ═══════════════════════════════════════════════════════
+   CSRF helper (Django requirement for POST/PUT/DELETE)
+═══════════════════════════════════════════════════════ */
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+const CSRF = () => getCookie('csrftoken');
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, {
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': CSRF(),
+      ...(opts.headers || {})
+    },
+    ...opts
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+function member(id)       { return MEMBERS.find(m => m.id === id) || {}; }
+function initials(name)   { return (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function entriesOf(mid)   { return entries.filter(e => e.memberId === mid); }
+function hoursOf(mid)     { return entriesOf(mid).reduce((s,e)=>s+(e.hours||0), 0); }
+function avgMark(mid) {
+  const ms = entriesOf(mid).map(e=>marks[e.id]?.stars).filter(Boolean);
+  return ms.length ? ms.reduce((a,b)=>a+b,0)/ms.length : 0;
+}
+function starsHTML(n, size=16) {
+  return [1,2,3,4,5].map(i=>`<span style="color:${i<=Math.round(n)?'#d4922a':'#d0ccc0'};font-size:${size}px">★</span>`).join('');
+}
+function tagsHTML(tags, hours) {
+  const h = hours>0 ? `<span class="hbadge">⏱ ${hours}h</span>` : '';
+  const t = (tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+  return h+t;
+}
+function fmtDate(d)      { return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function fmtDateShort(d) { const dd=new Date(d+'T00:00:00'); return `${dd.getDate()} ${MONTHS_SHORT[dd.getMonth()]} ${dd.getFullYear()}`; }
+function addDays(dateStr, n) {
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function escapeHTML(s) {
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function detectBlocker(entry) {
+  const haystack = `${entry.title||''} ${entry.desc||''} ${(entry.tags||[]).join(' ')}`.toLowerCase();
+  return BLOCKER_KEYWORDS.some(k => haystack.includes(k));
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATA LOADING
+═══════════════════════════════════════════════════════ */
+async function loadAll() {
+  try {
+    const me = await apiFetch('/api/me/');
+    document.getElementById('mentor-username').textContent     = me.username;
+    document.getElementById('mentor-avatar-initials').textContent = initials(me.name || me.username);
+
+    const stats = await apiFetch('/api/mentor/stats/');
+    document.getElementById('stat-members').textContent = stats.members;
+    document.getElementById('stat-total').textContent   = stats.total;
+    document.getElementById('stat-hours').textContent   = stats.total_hours + 'h';
+    document.getElementById('stat-today').textContent   = stats.today;
+
+    const membersRaw = await apiFetch('/api/mentor/members/');
+    MEMBERS = membersRaw.map(m => ({
+      id:       m.id,
+      name:     m.name || m.username,
+      username: m.username,
+      color:    m.color || '#3d6b4f',
+      college:  m.college || '',
+      role:     m.college || 'Member',
+    }));
+
+    const logsRaw = await apiFetch('/api/mentor/logs/');
+    entries = logsRaw.map(l => ({
+      id:       l.id,
+      memberId: l.member_id,
+      date:     l.date,
+      title:    l.title,
+      desc:     l.description,
+      hours:    l.hours_spent || 0,
+      tags:     l.tags ? l.tags.split(',').map(t=>t.trim()).filter(Boolean) : [],
+    }));
+
+    marks = {};
+    logsRaw.forEach(l => {
+      if (l.mark) marks[l.id] = { stars: l.mark.stars, note: l.mark.note };
+    });
+
+    renderSidebarMembers();
+    renderMembersGrid();
+    renderCalendar();
+    selectDate(todayStr);
+    populateMemberFilter();
+    renderAllLogs();
+
+    // Init scrum report date picker to today, then render
+    document.getElementById('scrum-date').value = todayStr;
+    renderScrumReport();
+
+  } catch (err) {
+    console.error('Failed to load dashboard data:', err);
+    showToast('❌ Failed to load data. Please refresh.');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PANEL NAVIGATION
+═══════════════════════════════════════════════════════ */
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+  if (id === 'scrum') renderScrumReport();
+}
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR MEMBERS
+═══════════════════════════════════════════════════════ */
+function renderSidebarMembers() {
+  const list = document.getElementById('sidebar-member-list');
+  if (!MEMBERS.length) {
+    list.innerHTML = `<div style="padding:12px 10px;font-size:13px;color:#64748b">No members yet.</div>`;
+    return;
+  }
+  list.innerHTML = MEMBERS.map(m => `
+    <div class="member-list-item" onclick="openProfile(${m.id})">
+      <div class="mavatar" style="background:${m.color}">${initials(m.name)}</div>
+      <div class="mavatar-info">
+        <div class="mavatar-name">${m.name}</div>
+        <div class="mavatar-sub">${entriesOf(m.id).length} entries · ${hoursOf(m.id)}h</div>
+      </div>
+      <div class="online-dot"></div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MEMBERS GRID (Overview)
+═══════════════════════════════════════════════════════ */
+function renderMembersGrid() {
+  const grid = document.getElementById('members-grid');
+  if (!MEMBERS.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-title">No members found</div><p>Members who sign up will appear here.</p></div>`;
+    return;
+  }
+  grid.innerHTML = MEMBERS.map(m => {
+    const avg = avgMark(m.id);
+    const cnt = entriesOf(m.id).length;
+    const hrs = hoursOf(m.id);
+    return `
+    <div class="member-card" onclick="openProfile(${m.id})">
+      <div class="member-card-top">
+        <div class="member-big-avatar" style="background:${m.color}">${initials(m.name)}</div>
+        <div>
+          <div class="member-card-name">${m.name}</div>
+          <div class="member-card-role">${m.college || 'Member'}</div>
+        </div>
+      </div>
+      <div class="member-card-stats">
+        <div class="mcs"><div class="mcs-val" style="color:${m.color}">${cnt}</div><div class="mcs-label">Entries</div></div>
+        <div class="mcs"><div class="mcs-val" style="color:#d4922a">${hrs}h</div><div class="mcs-label">Hours</div></div>
+      </div>
+      <div class="member-card-footer">
+        <div class="avg-mark">
+          <div class="stars-display">${starsHTML(avg,13)}</div>
+          <div class="avg-label">${avg>0 ? avg.toFixed(1)+' avg' : 'No marks yet'}</div>
+        </div>
+        <button class="view-profile-btn" onclick="event.stopPropagation();openProfile(${m.id})">View →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CALENDAR
+═══════════════════════════════════════════════════════ */
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('cal-label').textContent = `${MONTHS_FULL[calMonth]} ${calYear}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = DAYS_SHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days  = new Date(calYear, calMonth+1, 0).getDate();
+
+  for (let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell other"></div>`;
+
+  for (let d=1; d<=days; d++) {
+    const ds  = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cnt = entries.filter(e=>e.date===ds).length;
+    const isT = ds===todayStr, isS = ds===selDate;
+    grid.innerHTML += `
+      <div class="cal-cell${isT?' today':''}${isS?' sel':''}${cnt>0?' hasent':''}" onclick="selectDate('${ds}')">
+        <div class="cal-num">${isT?`<span class="today-badge">${d}</span>`:d}</div>
+        ${cnt>0?`<div class="cal-dots">${'<div class="cal-dot"></div>'.repeat(Math.min(cnt,5))}</div>
+        <div class="cal-cnt">${cnt} entr${cnt===1?'y':'ies'}</div>`:''}
+      </div>`;
+  }
+}
+
+function selectDate(ds) {
+  selDate = ds;
+  renderCalendar();
+  renderDayPanel(ds);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DAY PANEL (with marking)
+═══════════════════════════════════════════════════════ */
+function renderDayPanel(ds) {
+  const dayEntries = entries.filter(e=>e.date===ds);
+  document.getElementById('day-title').textContent = fmtDate(ds);
+  document.getElementById('day-sub').textContent   = dayEntries.length===0
+    ? 'No entries logged for this date.'
+    : `${dayEntries.length} entr${dayEntries.length===1?'y':'ies'} — click ★ stars to give marks`;
+  document.getElementById('day-entries').innerHTML = dayEntries.length===0
+    ? `<div class="empty-state"><div class="empty-icon">📭</div><p>No entries for this date.</p></div>`
+    : dayEntries.map(e=>entryWithMarkHTML(e)).join('');
+}
+
+function entryWithMarkHTML(e) {
+  const m   = member(e.memberId);
+  const mrk = marks[e.id];
+  const markSection = mrk
+    ? `<div class="mark-section" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="saved-stars">${starsHTML(mrk.stars)}</span>
+        ${mrk.note?`<span class="saved-note-text">"${mrk.note}"</span>`:''}
+        <button class="edit-mark-btn" onclick="editMark(${e.id})">Edit</button>
+       </div>`
+    : `<div class="mark-section" id="ms-${e.id}">
+        <span class="mark-label">Give Mark:</span>
+        <div class="star-rating" id="stars-${e.id}">
+          ${[1,2,3,4,5].map(i=>`<span class="star" data-v="${i}" onclick="setStar(${e.id},${i})" onmouseover="hoverStar(${e.id},${i})" onmouseout="unhoverStar(${e.id})">★</span>`).join('')}
+        </div>
+        <input class="mark-note" id="note-${e.id}" placeholder="Optional feedback…" maxlength="120"/>
+        <button class="save-mark-btn" onclick="saveMark(${e.id})">Save Mark</button>
+       </div>`;
+  return `
+    <div class="entry-row" id="er-${e.id}">
+      <div class="entry-row-top">
+        <div class="er-avatar" style="background:${m.color}">${initials(m.name)}</div>
+        <div>
+          <div class="er-name">${m.name || 'Unknown'}</div>
+          <div class="er-title">${e.title}</div>
+        </div>
+      </div>
+      <div class="er-desc">${e.desc}</div>
+      <div class="er-meta">${tagsHTML(e.tags,e.hours)}</div>
+      ${markSection}
+    </div>`;
+}
+
+/* Star interactions */
+const pendingStars = {};
+
+function setStar(eid, val) {
+  pendingStars[eid] = val;
+  document.querySelectorAll(`#stars-${eid} .star`).forEach(s => s.classList.toggle('lit', parseInt(s.dataset.v)<=val));
+}
+function hoverStar(eid, val) {
+  document.querySelectorAll(`#stars-${eid} .star`).forEach(s => s.classList.toggle('lit', parseInt(s.dataset.v)<=val));
+}
+function unhoverStar(eid) {
+  const cur = pendingStars[eid]||0;
+  document.querySelectorAll(`#stars-${eid} .star`).forEach(s => s.classList.toggle('lit', parseInt(s.dataset.v)<=cur));
+}
+
+async function saveMark(eid) {
+  const stars = pendingStars[eid]||0;
+  if (!stars) { showToast('⚠️ Please select at least 1 star.'); return; }
+  const note = document.getElementById('note-'+eid)?.value.trim()||'';
+
+  try {
+    await apiFetch(`/api/mentor/mark/${eid}/`, {
+      method: 'POST',
+      body: JSON.stringify({ stars, note })
+    });
+    marks[eid] = { stars, note };
+    const e = entries.find(x=>x.id===eid);
+    if (e) {
+      document.getElementById('er-'+eid).outerHTML = entryWithMarkHTML(e);
+      renderMembersGrid();
+      renderSidebarMembers();
+    }
+    showToast(`✅ Mark saved — ${stars} star${stars>1?'s':''}`);
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Failed to save mark. Try again.');
+  }
+}
+
+async function editMark(eid) {
+  try {
+    await apiFetch(`/api/mentor/mark/${eid}/delete/`, { method: 'DELETE' });
+  } catch (_) { /* best-effort */ }
+  delete marks[eid];
+  delete pendingStars[eid];
+  const e = entries.find(x=>x.id===eid);
+  if (e) document.getElementById('er-'+eid).outerHTML = entryWithMarkHTML(e);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCRUM REPORT  (NEW)
+   Classic standup format: Yesterday / Today / Blockers
+   per member, for any selected date.
+═══════════════════════════════════════════════════════ */
+function setScrumDateToday() {
+  document.getElementById('scrum-date').value = todayStr;
+  renderScrumReport();
+}
+
+function fmtFullDate(dateStr) {
+  const d = new Date(dateStr+'T00:00:00');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const weekday = d.toLocaleDateString('en-IN', { weekday: 'long' });
+  return `${dd}-${mm}-${yyyy} (${weekday})`;
+}
+
+function renderScrumReport() {
+  const dateInput = document.getElementById('scrum-date');
+  const targetDate = dateInput.value || todayStr;
+  const prevDate = addDays(targetDate, -1);
+
+  const todayEntries = entries.filter(e => e.date === targetDate);
+  const yestEntries  = entries.filter(e => e.date === prevDate);
+
+  const loggedCount = MEMBERS.filter(m => todayEntries.some(e => e.memberId === m.id)).length;
+  document.getElementById('scrum-logged-count').textContent = `${loggedCount} logged`;
+  document.getElementById('scrum-total-count').textContent  = `of ${MEMBERS.length} members`;
+
+  const content = document.getElementById('scrum-content');
+
+  if (!MEMBERS.length) {
+    content.innerHTML = `<div class="scrum-empty-state"><div class="empty-icon">👥</div><div class="empty-title">No team members yet</div><p>Once members join, their standup report appears here.</p></div>`;
+    return;
+  }
+
+  let hurdleCount = 0;
+  let absentCount = 0;
+
+  // Members who logged something today come first, unavailable members sink to the bottom.
+  const sortedMembers = [...MEMBERS].sort((a, b) => {
+    const aLogged = todayEntries.some(e => e.memberId === a.id) ? 0 : 1;
+    const bLogged = todayEntries.some(e => e.memberId === b.id) ? 0 : 1;
+    return aLogged - bLogged;
+  });
+
+  /* Turns a description into clean bullet lines (splits on existing
+     line breaks, or on sentence boundaries if it's one long sentence). */
+  function toBullets(text) {
+    if (!text) return [];
+    return text
+      .split(/\n|(?<=[.])\s+(?=[A-Z])/)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  const rowsHTML = sortedMembers.map(m => {
+    const todayE = todayEntries.filter(e => e.memberId === m.id);
+    const yestE  = yestEntries.filter(e => e.memberId === m.id);
+    const hasToday = todayE.length > 0;
+
+    if (!hasToday) {
+      absentCount++;
+      return `
+      <tr class="row-unavailable">
+        <td>
+          <div class="scrum-member-cell">
+            <div class="scrum-avatar" style="background:${m.color}">${initials(m.name)}</div>
+            <div>
+              <div class="scrum-member-name">${escapeHTML(m.name)}</div>
+              <div class="scrum-member-role">${escapeHTML(m.college || 'Member')}</div>
+            </div>
+          </div>
+        </td>
+        <td colspan="3" class="scrum-unavail-text">
+          Unavailable — no entry logged for ${fmtDateShort(targetDate)}.
+        </td>
+      </tr>`;
+    }
+
+    const hurdleEntries = todayE.filter(detectBlocker);
+    const workEntries    = todayE.filter(e => !detectBlocker(e));
+    const hasHurdle = hurdleEntries.length > 0;
+    if (hasHurdle) hurdleCount++;
+
+    // Yesterday column — bullet per entry (title + desc combined)
+    const yestBullets = yestE.map(e => `${e.title} — ${e.desc}`);
+    const yestHTML = yestBullets.length
+      ? `<ul class="scrum-bullets">${yestBullets.map(b => `<li>${escapeHTML(b)}</li>`).join('')}</ul>`
+      : `<ul class="scrum-bullets"><li class="none">No entry logged yesterday</li></ul>`;
+
+    // Today column — bullets from regular (non-hurdle) entries
+    const todayBullets = [];
+    workEntries.forEach(e => {
+      const lines = toBullets(e.desc);
+      if (lines.length) lines.forEach(l => todayBullets.push(l));
+      else todayBullets.push(e.title);
+    });
+    const todayHTML = todayBullets.length
+      ? `<ul class="scrum-bullets">${todayBullets.map(b => `<li>${escapeHTML(b)}</li>`).join('')}</ul>`
+      : `<ul class="scrum-bullets"><li class="none">No regular task entry — see hurdles</li></ul>`;
+
+    // Hurdles column
+    const hurdleBullets = [];
+    hurdleEntries.forEach(e => {
+      const lines = toBullets(e.desc);
+      if (lines.length) lines.forEach(l => hurdleBullets.push(l));
+      else hurdleBullets.push(e.title);
+    });
+    const hurdleHTML = hurdleBullets.length
+      ? `<ul class="scrum-bullets hurdle">${hurdleBullets.map(b => `<li>${escapeHTML(b)}</li>`).join('')}</ul>`
+      : `<ul class="scrum-bullets"><li class="none">No hurdles reported</li></ul>`;
+
+    const totalHours = todayE.reduce((s,e)=>s+(e.hours||0),0);
+    const allTags = [...new Set(todayE.flatMap(e=>e.tags||[]))];
+
+    return `
+    <tr${hasHurdle ? ' class="row-hurdle"' : ''}>
+      <td>
+        <div class="scrum-member-cell">
+          <div class="scrum-avatar" style="background:${m.color}">${initials(m.name)}</div>
+          <div>
+            <div class="scrum-member-name">${escapeHTML(m.name)}</div>
+            <div class="scrum-member-role">${escapeHTML(m.college || 'Member')}</div>
+          </div>
+        </div>
+      </td>
+      <td>${yestHTML}</td>
+      <td>
+        ${todayHTML}
+        ${(totalHours > 0 || allTags.length) ? `<div class="scrum-meta-row">${tagsHTML(allTags, totalHours)}</div>` : ''}
+      </td>
+      <td>${hurdleHTML}</td>
+    </tr>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="scrum-report" id="scrum-report-printable">
+      <div class="scrum-report-banner">
+        <div class="scrum-report-icon">📋</div>
+        <div>
+          <div class="scrum-report-title">Daily Scrum Report</div>
+          <div class="scrum-report-dateline">
+            <span>📅 <b>Date:</b> ${fmtFullDate(targetDate)}</span>
+            <span class="sep">|</span>
+            <span>👤 <b>Scrum Master:</b> Mentor</span>
+          </div>
+        </div>
+        <div class="scrum-report-stats">
+          <div class="srs"><div class="srs-val" style="color:var(--sage)">${loggedCount}</div><div class="srs-label">logged</div></div>
+          <div class="srs"><div class="srs-val" style="color:var(--muted)">${absentCount}</div><div class="srs-label">unavailable</div></div>
+          <div class="srs"><div class="srs-val" style="color:var(--coral)">${hurdleCount}</div><div class="srs-label">hurdles</div></div>
+        </div>
+      </div>
+      <div class="scrum-table-wrap">
+        <table class="scrum-table">
+          <thead>
+            <tr>
+              <th class="col-member"><div class="scrum-th-flex">👥 Member</div></th>
+              <th class="col-yest"><div class="scrum-th-flex"><span class="scrum-th-num" style="background:var(--blue)">1</span>Yesterday</div></th>
+              <th class="col-today"><div class="scrum-th-flex"><span class="scrum-th-num" style="background:var(--sage)">2</span>Today</div></th>
+              <th class="col-hurdle"><div class="scrum-th-flex"><span class="scrum-th-num" style="background:var(--coral)">3</span>Hurdles</div></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHTML}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* Download the rendered scrum report as a standalone, styled HTML file
+   the user can open, print to PDF, or share directly. */
+function downloadScrumReport() {
+  const reportEl = document.getElementById('scrum-report-printable');
+  if (!reportEl) { showToast('⚠️ Nothing to download yet.'); return; }
+
+  const dateVal = document.getElementById('scrum-date').value || todayStr;
+  const styles = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('\n');
+  const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>`;
+
+  const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Scrum Report — ${dateVal}</title>
+${fontLink}
+${styles}
+<style>
+  body { background: #f8f7f4; padding: 32px; font-family: 'DM Sans', sans-serif; }
+  .scrum-toolbar, .topbar, .sidebar { display: none !important; }
+</style>
+</head>
+<body>
+${reportEl.outerHTML}
+</body>
+</html>`;
+
+  const blob = new Blob([fullHTML], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `scrum-report-${dateVal}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Report downloaded');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MEMBER PROFILE
+═══════════════════════════════════════════════════════ */
+function openProfile(mid) {
+  const m      = member(mid);
+  const mes    = entriesOf(mid).sort((a,b)=>b.date.localeCompare(a.date));
+  const hrs    = hoursOf(mid);
+  const avg    = avgMark(mid);
+  const marked = mes.filter(e=>marks[e.id]).length;
+
+  const entriesHTML = mes.length===0
+    ? `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No entries yet</div></div>`
+    : mes.map(e => {
+        const mrk = marks[e.id];
+        return `
+        <div class="profile-entry-card">
+          <div class="pe-header">
+            <div class="pe-title">${e.title}</div>
+            <div class="pe-date">${fmtDateShort(e.date)}</div>
+          </div>
+          <div class="pe-desc">${e.desc}</div>
+          <div class="er-meta" style="margin-bottom:0">${tagsHTML(e.tags,e.hours)}</div>
+          <div class="pe-mark">
+            ${mrk
+              ? `<span class="pe-mark-stars">${starsHTML(mrk.stars,14)}</span>
+                 <span class="pe-mark-note">${mrk.note?`"${mrk.note}"`:'No feedback note'}</span>`
+              : `<span class="no-mark">No mark given yet</span>`}
+          </div>
+        </div>`;
+      }).join('');
+
+  document.getElementById('profile-content').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-avatar" style="background:${m.color}">${initials(m.name)}</div>
+      <div style="flex:1">
+        <div class="profile-name">${m.name}</div>
+        <div class="profile-role">${m.college || 'Member'}</div>
+        <div class="profile-stats">
+          <div class="ps"><div class="ps-val green">${mes.length}</div><div class="ps-label">Entries</div></div>
+          <div class="ps"><div class="ps-val amber">${hrs}h</div><div class="ps-label">Total Hours</div></div>
+          <div class="ps"><div class="ps-val blue">${avg>0?avg.toFixed(1):'–'}</div><div class="ps-label">Avg Mark</div></div>
+          <div class="ps"><div class="ps-val" style="color:#8b3a8b">${marked}</div><div class="ps-label">Marked</div></div>
+        </div>
+        ${avg>0?`<div style="margin-top:14px;display:flex;align-items:center;gap:8px">${starsHTML(avg,18)}<span style="font-size:13px;color:var(--muted)">Average rating</span></div>`:''}
+      </div>
+    </div>
+    <div class="profile-entries-title">All Entries (${mes.length})</div>
+    ${entriesHTML}`;
+
+  showPanel('profile');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ALL LOGS
+═══════════════════════════════════════════════════════ */
+function populateMemberFilter() {
+  const sel = document.getElementById('member-filter');
+  while (sel.options.length > 1) sel.remove(1);
+  MEMBERS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id; opt.textContent = m.name;
+    sel.appendChild(opt);
+  });
+}
+
+function renderAllLogs() {
+  const q   = document.getElementById('search-q').value.toLowerCase();
+  const mid = document.getElementById('member-filter').value;
+  let filtered = [...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if (mid) filtered = filtered.filter(e=>String(e.memberId)===String(mid));
+  if (q)   filtered = filtered.filter(e=>{
+    const m = member(e.memberId);
+    return (m.name||'').toLowerCase().includes(q)
+      || e.title.toLowerCase().includes(q)
+      || e.desc.toLowerCase().includes(q)
+      || (e.tags||[]).some(t=>t.toLowerCase().includes(q));
+  });
+
+  const list = document.getElementById('all-logs-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No entries found</div><p>Try a different filter.</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e => {
+    const m  = member(e.memberId);
+    const dd = new Date(e.date+'T00:00:00');
+    const mrk = marks[e.id];
+    return `
+    <div class="all-entry-card">
+      <div class="date-box">
+        <div class="date-day">${dd.getDate()}</div>
+        <div class="date-mon">${MONTHS_SHORT[dd.getMonth()]}</div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+          <div class="er-avatar" style="background:${m.color};width:30px;height:30px;font-size:11px">${initials(m.name)}</div>
+          <span style="font-size:12px;font-weight:700;color:${m.color};text-transform:uppercase;letter-spacing:.05em">${m.name||'Unknown'}</span>
+          ${mrk?`<span style="font-size:12px;color:#d4922a;margin-left:auto">${starsHTML(mrk.stars,12)}</span>`:''}
+        </div>
+        <div class="er-title">${e.title}</div>
+        <div class="er-desc" style="margin-bottom:8px">${e.desc}</div>
+        <div class="er-meta">${tagsHTML(e.tags,e.hours)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.remove('hidden');
+  setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+function toggleMentorAI() {
+  const container = document.getElementById('mentor-chatbot-card');
+  const isOpen = container.classList.toggle('open');
+  container.setAttribute('aria-hidden', String(!isOpen));
+}
+
+(function() {
+  const messagesDiv = document.getElementById("mentor-chat-messages");
+  const input = document.getElementById("mentor-chat-input");
+  const sendBtn = document.getElementById("mentor-chat-send");
+ 
+  function getCookie(name) {
+    let value = null;
+    document.cookie.split(";").forEach(c => {
+      const [k, v] = c.trim().split("=");
+      if (k === name) value = decodeURIComponent(v);
+    });
+    return value;
+  }
+ 
+  function appendMessage(text, role) {
+    const div = document.createElement("div");
+    div.style.cssText = role === "user"
+      ? "align-self: flex-end; max-width: 80%;"
+      : "align-self: flex-start; max-width: 88%;";
+ 
+    const bubble = document.createElement("div");
+    bubble.style.cssText = role === "user"
+      ? `background: #059669; color: #fff; border-radius: 12px 12px 0 12px;
+         padding: 9px 14px; font-size: 0.875rem; box-shadow: 0 1px 3px rgba(5,150,105,0.3);`
+      : `background: #fff; border: 1px solid #d1fae5; border-radius: 12px 12px 12px 0;
+         padding: 10px 14px; font-size: 0.875rem; color: #374151; box-shadow: 0 1px 3px rgba(0,0,0,0.06);`;
+ 
+    bubble.innerHTML = text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "<br>");
+ 
+    div.appendChild(bubble);
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+ 
+  function showTyping() {
+    const div = document.createElement("div");
+    div.id = "mentor-typing";
+    div.style.cssText = "align-self: flex-start;";
+    div.innerHTML = `<div style="background:#fff; border:1px solid #d1fae5; border-radius:12px;
+                                  padding: 10px 14px; font-size:0.8rem; color:#6b7280;">
+                       AI is thinking<span style="animation:blink 1.2s infinite">.</span><span style="animation:blink 1.2s 0.4s infinite">.</span><span style="animation:blink 1.2s 0.8s infinite">.</span>
+                     </div>`;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+ 
+  function hideTyping() {
+    const el = document.getElementById("mentor-typing");
+    if (el) el.remove();
+  }
+ 
+  async function sendMessage(message) {
+    const msg = message || input.value.trim();
+    if (!msg) return;
+ 
+    appendMessage(msg, "user");
+    input.value = "";
+    sendBtn.disabled = true;
+    sendBtn.textContent = "...";
+    showTyping();
+ 
+    try {
+      const res = await fetch("{% url 'mentor_chatbot' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ message: msg }),
+      });
+      const data = await res.json();
+      hideTyping();
+      appendMessage(data.reply || data.error || "No response.", "ai");
+    } catch (err) {
+      hideTyping();
+      appendMessage("❌ Could not reach AI. Make sure Ollama is running.", "ai");
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Send ➤";
+    }
+  }
+ 
+  sendBtn.addEventListener("click", () => sendMessage());
+  input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+ 
+  document.querySelectorAll(".mentor-prompt-btn").forEach(btn => {
+    btn.addEventListener("click", () => sendMessage(btn.dataset.msg));
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════
+   INIT — fetch real data, then render
+═══════════════════════════════════════════════════════ */
+loadAll();
+</script>
+</body>
+</html>

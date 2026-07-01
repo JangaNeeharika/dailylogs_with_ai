@@ -1,0 +1,1280 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DailyLog – Member Dashboard</title>
+  <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap)" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink:#0c0f14;--paper:#f5f3ee;--white:#ffffff;--cream:#edeae3;
+      --sage:#3a6b4d;--sage-light:#56926d;--sage-pale:#e8f2ec;
+      --amber:#c98b2a;--amber-pale:#fdf0e0;--coral:#c44a38;--coral-pale:#fdecea;
+      --blue:#2d5fa0;--blue-pale:#e7edf8;--purple:#7b4fa0;--purple-pale:#f2ecfa;
+      --muted:#6b6960;--border:#ddd9d0;--nav-w:240px;--top-h:60px;
+      --radius:14px;--shadow-sm:0 1px 4px rgba(12,15,20,.07);
+      --shadow:0 4px 18px rgba(12,15,20,.1);--shadow-lg:0 10px 48px rgba(12,15,20,.15);
+    }
+    body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;}
+    h1,h2,h3,h4,h5,.mono{font-family:'Syne',sans-serif;}
+    .sidebar{width:var(--nav-w);background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;overflow:hidden;}
+    .sidebar-logo{padding:24px 22px 20px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .logo-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;}
+    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--sage-light);box-shadow:0 0 8px rgba(86,146,109,.7);}
+    .sidebar-user{padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px;}
+    .s-avatar{width:36px;height:36px;border-radius:10px;background:var(--sage);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;flex-shrink:0;}
+    .s-user-info{flex:1;min-width:0;}
+    .s-user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .s-user-role{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+    .sidebar-nav{flex:1;padding:14px 12px;overflow-y:auto;}
+    .nav-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;padding:0 10px;margin:14px 0 8px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;cursor:pointer;transition:.15s;font-size:14px;font-weight:500;color:rgba(255,255,255,.5);border:1px solid transparent;margin-bottom:2px;}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+    .nav-item.active{background:rgba(58,107,77,.25);color:#7dd9a0;border-color:rgba(58,107,77,.35);}
+    .nav-icon{font-size:16px;width:20px;text-align:center;}
+    .sidebar-bottom{padding:14px 12px;border-top:1px solid rgba(255,255,255,.07);}
+    .logout-btn{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;cursor:pointer;transition:.15s;font-size:14px;font-weight:500;color:rgba(255,255,255,.4);width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;}
+    .logout-btn:hover{background:rgba(196,74,56,.15);color:#f4887a;}
+    .main{margin-left:var(--nav-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{height:var(--top-h);background:var(--white);border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:200;}
+    .topbar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .content{flex:1;padding:30px 32px;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+    .page-header{margin-bottom:26px;}
+    .page-title{font-size:26px;font-weight:800;letter-spacing:-.4px;line-height:1.1;}
+    .page-sub{font-size:14px;color:var(--muted);margin-top:4px;}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+    .stat-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:.2s;}
+    .stat-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+    .stat-card::before{content:'';position:absolute;top:-24px;right:-24px;width:90px;height:90px;border-radius:50%;opacity:.6;}
+    .stat-card.green::before{background:var(--sage-pale);}
+    .stat-card.amber::before{background:var(--amber-pale);}
+    .stat-card.blue::before{background:var(--blue-pale);}
+    .stat-card.purple::before{background:var(--purple-pale);}
+    .stat-icon{font-size:20px;margin-bottom:10px;position:relative;z-index:1;}
+    .stat-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1;margin-bottom:3px;position:relative;z-index:1;}
+    .stat-label{font-size:11px;color:var(--muted);font-weight:500;position:relative;z-index:1;}
+    .stat-card.green .stat-val{color:var(--sage);}
+    .stat-card.amber .stat-val{color:var(--amber);}
+    .stat-card.blue .stat-val{color:var(--blue);}
+    .stat-card.purple .stat-val{color:var(--purple);}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .section-title{font-size:17px;font-weight:800;}
+    .log-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;box-shadow:var(--shadow-sm);display:flex;gap:16px;align-items:flex-start;transition:.2s;}
+    .log-card:hover{border-color:var(--sage);box-shadow:var(--shadow);}
+    .log-date-box{min-width:48px;text-align:center;background:var(--paper);border-radius:10px;padding:9px 6px;flex-shrink:0;}
+    .log-day{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1;}
+    .log-mon{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+    .log-body{flex:1;cursor:pointer;}
+    .log-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:5px;}
+    .log-desc{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .log-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+    .tag{background:rgba(58,107,77,.1);color:var(--sage);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;}
+    .hbadge{background:var(--amber-pale);color:var(--amber);border:1px solid #f0d4a0;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;}
+    .mark-badge{background:var(--purple-pale);color:var(--purple);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;}
+    .log-card-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+    .edit-btn{background:var(--blue-pale);color:var(--blue);border:1.5px solid rgba(45,95,160,.2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:.15s;white-space:nowrap;}
+    .edit-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+    .date-info-banner{background:var(--amber-pale);border:1.5px solid rgba(201,139,42,.25);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--amber);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+    .date-error-banner{background:var(--coral-pale);border:1.5px solid rgba(196,74,56,.2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--coral);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+    .edit-mode-banner{background:var(--blue-pale);border:1.5px solid rgba(45,95,160,.25);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--blue);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .edit-mode-banner strong{font-weight:700;}
+    .cancel-edit-btn{background:none;border:1.5px solid var(--blue);border-radius:8px;color:var(--blue);font-size:12px;font-weight:700;font-family:'Syne',sans-serif;padding:5px 12px;cursor:pointer;transition:.15s;}
+    .cancel-edit-btn:hover{background:var(--blue);color:#fff;}
+    .form-card{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:30px 32px;box-shadow:var(--shadow-sm);max-width:720px;}
+    .form-group{margin-bottom:20px;}
+    .form-label{display:block;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+    .form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);outline:none;transition:.15s;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--sage);background:#fff;box-shadow:0 0 0 3px rgba(58,107,77,.1);}
+    .form-textarea{resize:vertical;min-height:110px;line-height:1.6;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .submit-btn{background:var(--sage);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:8px;}
+    .submit-btn:hover{background:#2e5a3e;transform:translateY(-1px);box-shadow:0 4px 12px rgba(58,107,77,.35);}
+    .submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .form-success{background:var(--sage-pale);border:1.5px solid rgba(58,107,77,.25);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--sage);font-weight:600;margin-top:16px;}
+    .form-error{background:var(--coral-pale);border:1.5px solid rgba(196,74,56,.2);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--coral);margin-top:14px;}
+    .cal-wrap{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow-sm);margin-bottom:22px;}
+    .cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+    .cal-month-label{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;flex:1;}
+    .cal-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:.15s;}
+    .cal-btn:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+    .cal-dh{text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:6px 0;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:.07em;}
+    .cal-cell{min-height:68px;border:1.5px solid var(--border);border-radius:10px;padding:7px 6px;cursor:pointer;transition:.15s;background:var(--white);display:flex;flex-direction:column;}
+    .cal-cell:hover{border-color:var(--sage);box-shadow:0 0 0 3px rgba(58,107,77,.1);}
+    .cal-cell.other{background:var(--cream);opacity:.3;pointer-events:none;}
+    .cal-cell.today{border-color:var(--sage);border-width:2px;}
+    .cal-cell.sel{border-color:var(--blue);border-width:2px;background:var(--blue-pale);}
+    .cal-cell.haslog{background:#f2fbf5;}
+    .cal-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;}
+    .today-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--sage);color:#fff;font-size:11px;}
+    .cal-dots{display:flex;flex-wrap:wrap;gap:3px;}
+    .cal-dot{width:6px;height:6px;border-radius:50%;background:var(--sage-light);}
+    .cal-cnt{font-size:10px;color:var(--muted);margin-top:2px;}
+    .day-panel{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow-sm);}
+    .day-panel-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+    .day-panel-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+    .day-entry{border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:.15s;}
+    .day-entry:hover{border-color:var(--sage);background:var(--sage-pale);}
+    .day-entry-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+    .day-entry-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+    .day-entry-meta{display:flex;gap:7px;align-items:center;}
+    .day-entry-desc{font-size:13px;color:var(--muted);line-height:1.55;margin-top:8px;border-top:1px solid var(--border);padding-top:10px;display:none;}
+    .day-entry.expanded .day-entry-desc{display:block;}
+    .expand-icon{font-size:12px;color:var(--muted);transition:.2s;}
+    .day-entry.expanded .expand-icon{transform:rotate(180deg);}
+    .activity-feed{display:flex;flex-direction:column;gap:10px;}
+    .activity-item{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);transition:.15s;}
+    .activity-item:hover{border-color:var(--sage-light);}
+    .a-avatar{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:#fff;}
+    .a-body{flex:1;}
+    .a-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+    .a-title{font-size:14px;font-weight:600;font-family:'Syne',sans-serif;}
+    .a-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;}
+    .a-time{font-size:11px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:4px;}
+    .a-right{flex-shrink:0;text-align:right;}
+    .new-badge{background:var(--sage-pale);color:var(--sage);border-radius:100px;padding:3px 9px;font-size:10px;font-weight:700;font-family:'Syne',sans-serif;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(12,15,20,.5);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:var(--white);border-radius:20px;padding:30px 32px;max-width:520px;width:90%;box-shadow:var(--shadow-lg);animation:popIn .2s ease;}
+    @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
+    .modal-title{font-size:19px;font-weight:800;}
+    .modal-date{font-size:12px;color:var(--muted);margin-top:3px;}
+    .modal-close{background:var(--paper);border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.15s;}
+    .modal-close:hover{background:var(--ink);color:#fff;}
+    .modal-desc{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:16px;}
+    .modal-meta{display:flex;gap:8px;flex-wrap:wrap;}
+    .logout-modal-box{background:var(--white);border-radius:20px;padding:32px 36px;max-width:380px;width:90%;box-shadow:var(--shadow-lg);text-align:center;animation:popIn .2s ease;}
+    .logout-icon{font-size:40px;margin-bottom:14px;}
+    .logout-modal-title{font-size:20px;font-weight:800;margin-bottom:8px;}
+    .logout-modal-sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
+    .logout-actions{display:flex;gap:10px;justify-content:center;}
+    .btn-cancel{background:var(--paper);border:1.5px solid var(--border);border-radius:10px;padding:10px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;}
+    .btn-cancel:hover{border-color:var(--ink);}
+    .btn-logout-confirm{background:var(--coral);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;}
+    .btn-logout-confirm:hover{background:#a93b2b;}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 20px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:1000;animation:slideUp .3s ease;display:none;}
+    .toast.show{display:block;}
+    @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .empty-state{text-align:center;padding:52px 32px;color:var(--muted);}
+    .empty-icon{font-size:40px;margin-bottom:10px;}
+    .empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+    .spinner{border:2px solid var(--border);border-top-color:var(--sage);border-radius:50%;width:20px;height:20px;animation:spin .7s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hidden{display:none !important;}
+
+    /* AI Chat Button */
+    #chat-trigger{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:linear-gradient(135deg, var(--sage) 0%, var(--sage-light) 100%);
+      color:#fff;
+      border:none;
+      padding:10px 18px;
+      border-radius:12px;
+      cursor:pointer;
+      font-family:'Syne',sans-serif;
+      font-weight:700;
+      font-size:13px;
+      transition:all .2s ease;
+      box-shadow:0 2px 8px rgba(58,107,77,.3);
+    }
+    #chat-trigger:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 16px rgba(58,107,77,.4);
+    }
+    #chat-trigger .chat-icon{
+      font-size:16px;
+    }
+
+    
+
+    
+    @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}.form-row{grid-template-columns:1fr;}}
+
+    @media screen and (max-width: 768px){
+      .main{flex-direction: column;}
+      .sidebar{width: 100%;height: auto;position: relative;top: 0;border-right: none;border-bottom: 1px solid #1f2937;}
+      .content{padding: 16px;}
+      .stats-grid{grid-template-columns: 1fr;}
+      .cal-grid{gap: 3px;}
+      .cal-cell{min-height: 60px;padding: 4px;}
+      .page-title{font-size: 22px;}
+      .topbar{padding: 0 12px;}
+      .filter-bar{flex-direction: column;}
+      .filter-bar input,.filter-bar select{width: 100%;}
+      #chat-trigger{
+        padding:8px 14px;
+        font-size:12px;
+      }
+      #chat-trigger span:last-child{
+        display:none;
+      }
+
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><div class="logo-dot"></div>DailyLog</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="s-avatar" id="sb-avatar">ME</div>
+    <div class="s-user-info">
+      <div class="s-user-name" id="sb-name">{{ username }}</div>
+      <div class="s-user-role">Member</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-label">Menu</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="showPanel('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+    <div class="nav-item" id="nav-addlog" onclick="showPanel('addlog')"><span class="nav-icon">✏️</span> Add Log</div>
+    <div class="nav-item" id="nav-calendar" onclick="showPanel('calendar')"><span class="nav-icon">📅</span> Calendar</div>
+    <div class="nav-item" id="nav-team" onclick="showPanel('team')"><span class="nav-icon">👥</span> Team Activity</div>
+    <div class="nav-item" id="nav-report" onclick="showPanel('report')"><span class="nav-icon">🤖</span> AI Report</div>
+  </div>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" onclick="openLogoutModal()"><span class="nav-icon">🚪</span> Logout</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title"><h2>Dashboard</div>
+    <div class="topbar-right">
+      <button id="chat-trigger" onclick="toggleMemberChat()">
+        <span class="chat-icon">✨</span>
+        <span>AI Assistant</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD PANEL -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="page-header">
+        <div class="page-title" id="dash-greeting">hello</div>
+        <div class="page-sub">Here's a summary of your activity.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon">📋Total log entries from the user</div><div class="stat-val" id="stat-total">–</div><div class="stat-label">Total Logs</div></div>
+        <div class="stat-card amber"><div class="stat-icon">📅Number of logs in this week</div><div class="stat-val" id="stat-week">–</div><div class="stat-label">This Week</div></div>
+        <div class="stat-card blue"><div class="stat-icon">⏱Time spent on logs this week</div><div class="stat-val" id="stat-hours">–</div><div class="stat-label">Week Hours</div></div>
+      </div>
+      <div class="section-header"><div class="section-title">📋 Recent Logs</div></div>
+      <div id="recent-logs-list"><div class="empty-state"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ADD LOG PANEL -->
+    <div class="panel" id="panel-addlog">
+      <div class="page-header">
+        <div class="page-title" id="addlog-panel-title">Add Log</div>
+        <div class="page-sub">Record what you worked on today.</div>
+      </div>
+      
+      <div id="edit-mode-banner" class="edit-mode-banner hidden">
+        <span>✏️ <strong>Edit mode</strong> — you are updating an existing log entry.</span>
+        <button class="cancel-edit-btn" onclick="cancelEdit()">✕ Cancel edit</button>
+      </div>
+
+      <div class="date-info-banner">
+        📅 You can only log entries for <strong>today</strong> or <strong>yesterday</strong>.
+      </div>
+
+      <div class="form-card">
+        <input type="hidden" id="edit-log-id" value=""/>
+        <form id="log-form" onsubmit="submitLog(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="log-date">Date</label>
+              <input type="date" id="log-date" name="date" class="form-input" required onchange="validateDateRestriction()"/>
+              <div id="date-error" class="hidden" style="margin-top:6px;font-size:12px;color:var(--coral);font-weight:600;">⚠️ Only today or yesterday is allowed.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="log-hours">Hours Spent</label>
+              <input type="number" id="log-hours" name="hours_spent" class="form-input" placeholder="e.g. 3.5" min="0" max="24" step="0.1" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="log-title">Log Title</label>
+            <input type="text" id="log-title" name="title" class="form-input" placeholder="e.g. Built the authentication module" maxlength="120" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="log-tags">Tags <span style="font-weight:400;text-transform:none;letter-spacing:0">(comma-separated, optional)</span></label>
+            <input type="text" id="log-tags" name="tags" class="form-input" placeholder="e.g. React, API, Testing"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="log-desc">Description</label>
+
+            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="ai-suggest-btn"
+                      style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff;
+                             border: none; border-radius: 8px; padding: 7px 14px; cursor: pointer;
+                             font-size: 0.82rem; font-weight: 500; display: flex; align-items: center; gap: 6px;
+                             transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(79,70,229,0.25);">
+                ✨ <span id="suggest-btn-text">Suggest Description with AI</span>
+              </button>
+              <span id="ai-suggest-hint" style="font-size: 0.78rem; color: #9ca3af;">
+                💡 Fill in the title first, then click to get an AI-generated description
+              </span>
+            </div>
+
+            <div id="ai-suggestion-box"
+                 style="display:none; background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+                        border: 1px solid #c4b5fd; border-radius: 8px; padding: 12px 14px;
+                        margin-bottom: 10px; position: relative;">
+              <div style="font-size: 0.75rem; color: #7c3aed; font-weight: 600; margin-bottom: 6px;">
+                ✨ AI Suggested Log Improvements
+              </div>
+              <div id="ai-suggestion-title" style="font-size: 0.88rem; color: #111827; font-weight: 700; margin-bottom: 8px; display:none;"></div>
+              <div id="ai-suggestion-tags" style="font-size: 0.82rem; color: #334155; margin-bottom: 10px; display:none;"></div>
+              <div id="ai-suggestion-text"
+                   style="font-size: 0.875rem; color: #374151; line-height: 1.55;"></div>
+              <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" id="use-title-btn"
+                        style="background: #047857; color: #fff; border: none; border-radius: 6px;
+                               padding: 5px 14px; font-size: 0.8rem; cursor: pointer; font-weight: 500;">
+                  ✅ Use Title
+                </button>
+                <button type="button" id="use-tags-btn"
+                        style="background: #10b981; color: #fff; border: none; border-radius: 6px;
+                               padding: 5px 14px; font-size: 0.8rem; cursor: pointer; font-weight: 500;">
+                  ✅ Use Tags
+                </button>
+                <button type="button" id="use-description-btn"
+                        style="background: #4f46e5; color: #fff; border: none; border-radius: 6px;
+                               padding: 5px 14px; font-size: 0.8rem; cursor: pointer; font-weight: 500;">
+                  ✅ Use Description
+                </button>
+                <button type="button" id="regenerate-btn"
+                        style="background: #fff; color: #4f46e5; border: 1px solid #c4b5fd;
+                               border-radius: 6px; padding: 5px 14px; font-size: 0.8rem; cursor: pointer;">
+                  🔁 Regenerate
+                </button>
+                <button type="button" id="dismiss-suggestion-btn"
+                        style="background: transparent; color: #9ca3af; border: none;
+                               font-size: 0.8rem; cursor: pointer; margin-left: auto;">
+                  ✕ Dismiss
+                </button>
+              </div>
+            </div>
+
+            <textarea id="log-desc" name="description" class="form-textarea" placeholder="Describe what you did, challenges faced, and outcomes…" required></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <button type="submit" class="submit-btn" id="submit-btn"><span id="submit-btn-label">Submit Log</span></button>
+            <button type="button" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;" onclick="resetForm()">Clear form</button>
+          </div>
+          <div id="form-msg" class="hidden"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- CALENDAR PANEL -->
+    <div class="panel" id="panel-calendar">
+      <div class="page-header">
+        <div class="page-title">📅 Calendar</div>
+        <div class="page-sub">Click a date to view your logs for that day.</div>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal-nav">
+          <div class="cal-month-label" id="cal-label"></div>
+          <div class="cal-btn" onclick="changeMonth(-1)">&#8249;</div>
+          <div class="cal-btn" onclick="changeMonth(1)">&#8250;</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="day-panel">
+        <div class="day-panel-title" id="day-title">Select a date</div>
+        <div class="day-panel-sub" id="day-sub">Your logs for that day will appear here.</div>
+        <div id="day-entries"></div>
+      </div>
+    </div>
+   
+    <!-- TEAM PANEL -->
+    <div class="panel" id="panel-team">
+      <div class="page-header">
+        <div class="page-title">👥 Team Activity</div>
+        <div class="page-sub">Logs submitted by your team in the past 24 hours.</div>
+      </div>
+      <div id="team-feed"><div class="empty-state"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- AI REPORT PANEL -->
+    <div class="panel" id="panel-report">
+      <div class="page-header">
+        <div class="page-title">🤖 AI Report</div>
+        <div class="page-sub">Generate an AI summary of your logs over a date range.</div>
+      </div>
+
+      <div class="form-card" id="report-step-range">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="report-start">From date</label>
+            <input type="date" id="report-start" class="form-input" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="report-end">To date</label>
+            <input type="date" id="report-end" class="form-input" required/>
+          </div>
+        </div>
+        <button type="button" class="submit-btn" id="report-check-btn" onclick="reportCheckRange()">Continue</button>
+        <div id="report-step1-msg" class="hidden"></div>
+      </div>
+
+      <div class="form-card hidden" id="report-step-missing">
+        <div class="page-sub" style="margin-bottom:14px;">
+          The following dates have no log entry. Add a quick reason for each (optional) so the AI can mention it in the report.
+        </div>
+        <div id="report-missing-list"></div>
+        <button type="button" class="submit-btn" id="report-generate-btn" onclick="reportGenerate()">Generate Report</button>
+        <button type="button" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-left:10px;" onclick="reportBackToRange()">← Back</button>
+        <div id="report-step2-msg" class="hidden"></div>
+      </div>
+
+      <div class="form-card hidden" id="report-step-output">
+        <div class="section-header"><div class="section-title">📄 Summary Report</div></div>
+        <div id="report-output" style="white-space:pre-wrap;line-height:1.6;font-size:14px;"></div>
+
+        <div class="form-group" style="margin-top:20px;">
+          <label class="form-label" for="report-feedback">Not satisfied? Tell the AI what to change</label>
+          <textarea id="report-feedback" class="form-textarea" placeholder="e.g. Make it shorter, focus more on the testing work, mention I was blocked on the API for 2 days…"></textarea>
+        </div>
+        <button type="button" class="submit-btn" id="report-regen-btn" onclick="reportRegenerate()">Regenerate with feedback</button>
+        <button type="button" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-left:10px;" onclick="reportStartOver()">Start over</button>
+        <div id="report-step3-msg" class="hidden"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOG DETAIL MODAL -->
+<div class="modal-overlay" id="log-modal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div><div class="modal-title" id="modal-title"></div><div class="modal-date" id="modal-date"></div></div>
+      <div class="modal-close" onclick="closeLogModal()">✕</div>
+    </div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-meta" id="modal-meta"></div>
+  </div>
+</div>
+
+<!-- Floating AI Chatbot -->
+<div class="ai-chat-container" id="member-chatbot-card" aria-hidden="true">
+  <div class="ai-chat-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.4rem">🤖</span>
+      <div>
+        <h3 style="margin:0;font-size:1rem;font-weight:700">Personal AI Assistant</h3>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,.85)">Ask about your activity, mood, and logs</div>
+      </div>
+    </div>
+    <button class="ai-chat-close" onclick="toggleMemberChat()">Close</button>
+  </div>
+  <div id="member-chat-messages" style="height:340px;overflow-y:auto;padding:16px;background:#f0fdf4;display:flex;flex-direction:column;gap:10px;">
+    <div class="chat-msg ai" style="align-self:flex-start;max-width:88%;">
+      <div style="background:#fff;border:1px solid #d1fae5;border-radius:12px 12px 12px 0;padding:10px 14px;font-size:0.875rem;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        👋 Hello! I'm your personal AI assistant. I can help you:
+        <ul style="margin:6px 0 0 16px;padding:0;">
+          <li>Review today's work and logs</li>
+          <li>Spot patterns in your productivity</li>
+          <li>Summarize your mood and habits</li>
+          <li>Help improve your log descriptions</li>
+        </ul>
+        What would you like to ask?
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 16px;background:#ecfdf5;border-top:1px solid #d1fae5;display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="member-prompt-btn ai-btn" data-msg="What did I work on this week?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">📋 This week</button>
+    <button class="member-prompt-btn ai-btn" data-msg="What are my productivity patterns based on my logs?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">📊 Patterns</button>
+    <button class="member-prompt-btn ai-btn" data-msg="On which days was my mood lowest?" style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">😔 Mood</button>
+    <button class="member-prompt-btn ai-btn" data-msg="Help me write a better log description for today." style="font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid #6ee7b7;background:#fff;color:#059669;">✍️ Write log</button>
+  </div>
+  <div style="padding:12px 14px;background:#fff;border-top:1px solid #d1d5db;display:flex;gap:8px;align-items:center;">
+    <input type="text" id="member-chat-input" placeholder="Ask about your activity..." style="flex:1;border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;font-size:0.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#d1d5db'" />
+    <button id="member-chat-send" class="ai-btn" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:0.875rem;font-weight:500;">Send ➤</button>
+  </div>
+</div>
+
+<style>
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes dotBlinkMember { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+  .ai-chat-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: min(420px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.18);
+    z-index: 500;
+    overflow: hidden;
+  }
+  .ai-chat-container.open { display: flex; animation: slideUp .25s ease; }
+  .ai-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    color: #fff;
+    background: linear-gradient(135deg, #059669, #0d9488);
+  }
+  .ai-chat-header h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+  .ai-chat-close {
+    border: none;
+    background: rgba(255,255,255,.16);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background .2s;
+  }
+  .ai-chat-close:hover { background: rgba(255,255,255,.28); }
+  .ai-btn {
+    border: none;
+    background: #059669;
+    color: #fff;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .2s, background .2s;
+  }
+  .ai-btn:hover { background: #047857; transform: translateY(-1px); }
+</style>
+
+<script>
+  function toggleMemberChat() {
+    const panel = document.getElementById('member-chatbot-card');
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+
+    if (isOpen) {
+      panel.classList.remove('open');
+      panel.setAttribute('aria-hidden', 'true');
+    } else {
+      panel.classList.add('open');
+      panel.setAttribute('aria-hidden', 'false');
+      const msgs = document.getElementById('member-chat-messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+      document.getElementById('member-chat-input').focus();
+    }
+  }
+
+  function formatMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function appendMemberMessage(text, role) {
+    const container = document.getElementById('member-chat-messages');
+    if (!container) return;
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = role === 'user'
+      ? 'align-self:flex-end; max-width:82%;'
+      : 'align-self:flex-start; max-width:90%;';
+
+    const bubble = document.createElement('div');
+    bubble.style.cssText = role === 'user'
+      ? 'background:#4f46e5; color:#fff; border-radius:12px 12px 0 12px; padding:9px 13px; font-size:0.825rem; line-height:1.5; box-shadow:0 1px 4px rgba(79,70,229,0.3);'
+      : 'background:#fff; border:1px solid #d1fae5; border-radius:12px 12px 12px 0; padding:10px 13px; font-size:0.875rem; color:#374151; line-height:1.5; box-shadow:0 1px 3px rgba(0,0,0,0.06);';
+
+    if (role === 'user') {
+      bubble.textContent = text;
+    } else {
+      bubble.innerHTML = formatMarkdown(text);
+    }
+
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showMemberTyping() {
+    const container = document.getElementById('member-chat-messages');
+    if (!container) return;
+    const typing = document.createElement('div');
+    typing.id = 'member-chat-typing';
+    typing.style.cssText = 'align-self:flex-start;';
+    typing.innerHTML = `<div style="background:#fff; border:1px solid #d1fae5; border-radius:12px; padding:10px 13px; font-size:0.8rem; color:#6b7280; display:flex; gap:4px; align-items:center;">AI thinking<span style="animation:dotBlinkMember 1.2s infinite">.</span><span style="animation:dotBlinkMember 1.2s 0.4s infinite">.</span><span style="animation:dotBlinkMember 1.2s 0.8s infinite">.</span></div>`;
+    container.appendChild(typing);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function hideMemberTyping() {
+    const el = document.getElementById('member-chat-typing');
+    if (el) el.remove();
+  }
+
+  async function sendMemberMessage(msg) {
+    const input = document.getElementById('member-chat-input');
+    if (!input) return;
+    const text = msg || input.value.trim();
+    if (!text) return;
+
+    appendMemberMessage(text, 'user');
+    input.value = '';
+    input.disabled = true;
+    const sendButton = document.getElementById('member-chat-send');
+    if (sendButton) sendButton.disabled = true;
+    showMemberTyping();
+
+    let logsContext = [];
+    if (typeof myLogs !== 'undefined' && Array.isArray(myLogs)) {
+      logsContext = myLogs.slice(0, 20).map(log => {
+        if (log && typeof log === 'object') {
+          const title = log.title ? String(log.title).trim() : '';
+          const description = log.description ? String(log.description).trim() : '';
+          const date = log.date ? String(log.date).trim() : '';
+          const hours = log.hours_spent != null ? ` (${log.hours_spent}h)` : '';
+          const textParts = [date, title, description].filter(Boolean);
+          return { content: `${textParts.join(' — ')}${hours}` };
+        }
+        return { content: String(log) };
+      });
+    }
+
+    try {
+      const response = await fetch(API.CHATBOT, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          message: text,
+          history: [],
+          frontend_logs: logsContext
+        })
+      });
+
+      const data = await response.json();
+      hideMemberTyping();
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+      appendMemberMessage(data.reply || 'No response from AI.', 'assistant');
+    } catch (error) {
+      hideMemberTyping();
+      appendMemberMessage('❌ Could not reach AI. Please try again.', 'assistant');
+      console.error('Member chatbot error:', error);
+    } finally {
+      input.disabled = false;
+      if (sendButton) sendButton.disabled = false;
+      input.focus();
+    }
+  }
+
+  document.getElementById('member-chat-send').addEventListener('click', () => sendMemberMessage());
+  document.getElementById('member-chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMemberMessage();
+    }
+  });
+  document.querySelectorAll('.member-prompt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = document.getElementById('member-chatbot-card');
+      if (panel && !panel.classList.contains('open')) {
+        toggleMemberChat();
+      }
+      sendMemberMessage(btn.dataset.msg);
+    });
+  });
+</script>
+
+<!-- LOGOUT MODAL -->
+<div class="modal-overlay" id="logout-modal" onclick="closeModal(event)">
+  <div class="logout-modal-box" onclick="event.stopPropagation()">
+    <div class="logout-icon">👋</div>
+    <div class="logout-modal-title">Log out?</div>
+    <div class="logout-modal-sub">You'll need to sign back in to access your dashboard.</div>
+    <div class="logout-actions">
+      <button class="btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+      <button class="btn-logout-confirm" onclick="doLogout()">Yes, Log Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = {
+  ME:        '/api/me/',
+  STATS:     '/api/stats/',
+  MY_LOGS:   '/api/logs/my/',
+  ADD_LOG:   '/api/logs/add/',
+  UPDATE_LOG:'/api/logs/update/',
+  TEAM_LOGS: '/api/logs/team/24h/',
+  REPORT_CHECK:    '/api/report/check/',
+  REPORT_GENERATE: '/api/report/generate/',
+  CHATBOT:   '/api/chatbot/member/',
+};
+
+let myLogs   = [];
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selDate  = null;
+const todayStr     = new Date().toISOString().slice(0,10);
+const yesterdayStr = (()=>{ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); })();
+
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_SHORT   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MEMBER_COLORS= ['#3a6b4d','#2d5fa0','#7b4fa0','#b5451b','#c98b2a','#1a7a7a'];
+
+function initials(name){ return (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function memberColor(name){ let h=0; for(let c of name) h=(h*31+c.charCodeAt(0))%MEMBER_COLORS.length; return MEMBER_COLORS[h]; }
+function fmtDateLong(ds){ const d=new Date(ds+'T00:00:00'); return d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function timeAgo(isoStr){ const diff=Date.now()-new Date(isoStr).getTime(); const m=Math.floor(diff/60000); if(m<1)return'just now'; if(m<60)return`${m}m ago`; const h=Math.floor(m/60); if(h<24)return`${h}h ago`; return`${Math.floor(h/24)}d ago`; }
+
+function tagsHTML(tagsVal, hours){
+  const h=hours>0?`<span class="hbadge">⏱ ${hours}h</span>`:'';
+  let tags=[];
+  if(tagsVal){ if(Array.isArray(tagsVal))tags=tagsVal; else tags=String(tagsVal).split(',').map(t=>t.trim()).filter(Boolean); }
+  return h+tags.map(t=>`<span class="tag">${t}</span>`).join('');
+}
+function markBadge(mark){ return mark?`<span class="mark-badge">⭐ ${mark.stars}/5</span>`:''; }
+
+function getCookie(name){
+  const c=document.cookie.split(';').map(s=>s.trim());
+  for(const s of c){ if(s.startsWith(name+'='))return decodeURIComponent(s.slice(name.length+1)); }
+  return null;
+}
+async function fetchJSON(url,opts={}){
+  const headers={'Content-Type':'application/json',...(opts.headers||{})};
+  const csrf=getCookie('csrftoken');
+  if(csrf)headers['X-CSRFToken']=csrf;
+  const res=await fetch(url,{credentials:'include',...opts,headers});
+  if(!res.ok){const t=await res.text();throw new Error(`HTTP ${res.status}: ${t}`);}
+  return res.json();
+}
+
+const panelTitles={dashboard:'Dashboard',addlog:'Add Log',calendar:'Calendar',team:'Team Activity',report:'AI Report'};
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  document.getElementById('topbar-title').textContent=panelTitles[id]||'';
+  if(id==='calendar')renderCalendar();
+  if(id==='team')loadTeamActivity();
+}
+
+async function init(){
+  const d=new Date();
+
+  const dateInput=document.getElementById('log-date');
+  dateInput.min=yesterdayStr;
+  dateInput.max=todayStr;
+  dateInput.value=todayStr;
+
+  const user=await fetchJSON(API.ME);
+const firstName=(user.name||user.username).split(' ')[0];
+
+document.getElementById('sb-name').textContent=user.name||user.username;
+document.getElementById('sb-avatar').textContent=initials(user.name||user.username);
+
+document.getElementById('dash-greeting').textContent =
+  `Hello, Welcome Back ${firstName}`;
+  
+
+  await loadStats();
+  await loadMyLogs();
+}
+
+async function loadStats(){
+  try{
+    const s=await fetchJSON(API.STATS);
+    document.getElementById('stat-total').textContent=s.total;
+    document.getElementById('stat-week').textContent=s.week_count;
+    document.getElementById('stat-hours').textContent=s.week_hours+'h';
+  }catch(e){console.warn('Stats load failed',e);}
+}
+
+async function loadMyLogs(){
+  try{
+    myLogs=await fetchJSON(API.MY_LOGS);
+    renderRecentLogs();
+  }catch(e){
+    document.getElementById('recent-logs-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load logs</div><p>${e.message}</p></div>`;
+  }
+}
+
+function isWithin24h(log){
+  if(log.created_at){
+    return (Date.now()-new Date(log.created_at).getTime()) < 24*3600*1000;
+  }
+  return log.date===todayStr || log.date===yesterdayStr;
+}
+
+function renderRecentLogs(){
+  const sorted=[...myLogs].sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('recent-logs-list');
+  if(!sorted.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No logs yet</div><p>Add your first log to get started!</p></div>`;
+    return;
+  }
+  el.innerHTML=sorted.map(l=>logCardHTML(l)).join('');
+}
+
+function logCardHTML(l){
+  const d=new Date(l.date+'T00:00:00');
+  const canEdit=isWithin24h(l);
+  return `<div class="log-card">
+    <div class="log-date-box"><div class="log-day">${d.getDate()}</div><div class="log-mon">${MONTHS_SHORT[d.getMonth()]}</div></div>
+    <div class="log-body" onclick="openLogModal(${JSON.stringify(l).replace(/"/g,'&quot;')})">
+      <div class="log-title">${l.title}</div>
+      <div class="log-desc">${l.description||''}</div>
+      <div class="log-meta">${tagsHTML(l.tags,l.hours_spent||0)}${markBadge(l.mark)}</div>
+    </div>
+    <div class="log-card-actions">
+      ${canEdit?`<button class="edit-btn" onclick="startEdit(${JSON.stringify(l).replace(/"/g,'&quot;')})">✏️ Edit</button>`:''}
+    </div>
+  </div>`;
+}
+
+function startEdit(l){
+  document.getElementById('edit-log-id').value=l.id;
+  document.getElementById('log-date').value=l.date;
+  document.getElementById('log-hours').value=l.hours_spent||'';
+  document.getElementById('log-title').value=l.title||'';
+  const tagsVal=Array.isArray(l.tags)?l.tags.join(', '):(l.tags||'');
+  document.getElementById('log-tags').value=tagsVal;
+  document.getElementById('log-desc').value=l.description||'';
+
+  document.getElementById('edit-mode-banner').classList.remove('hidden');
+  document.getElementById('submit-btn-label').textContent='Update Log';
+  document.getElementById('form-msg').className='hidden';
+
+  showPanel('addlog');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function cancelEdit(){
+  resetForm();
+}
+
+function validateDateRestriction(){
+  const val=document.getElementById('log-date').value;
+  const errEl=document.getElementById('date-error');
+  const btn=document.getElementById('submit-btn');
+  if(val && val!==todayStr && val!==yesterdayStr){
+    errEl.classList.remove('hidden');
+    btn.disabled=true;
+  } else {
+    errEl.classList.add('hidden');
+    btn.disabled=false;
+  }
+}
+
+function openLogModal(l){
+  document.getElementById('modal-title').textContent=l.title;
+  document.getElementById('modal-date').textContent=fmtDateLong(l.date);
+  document.getElementById('modal-desc').textContent=l.description||'No description.';
+  document.getElementById('modal-meta').innerHTML=tagsHTML(l.tags,l.hours_spent||0)+(l.mark?`<span class="mark-badge">⭐ ${l.mark.stars}/5${l.mark.note?' – '+l.mark.note:''}</span>`:'');
+  document.getElementById('log-modal').classList.add('open');
+}
+function closeLogModal(){ document.getElementById('log-modal').classList.remove('open'); }
+
+async function submitLog(e){
+  e.preventDefault();
+
+  const dateVal=document.getElementById('log-date').value;
+  if(dateVal!==todayStr && dateVal!==yesterdayStr){
+    const msg=document.getElementById('form-msg');
+    msg.className='form-error';
+    msg.innerHTML='❌ You can only submit logs for today or yesterday.';
+    return;
+  }
+
+  const btn=document.getElementById('submit-btn');
+  const msg=document.getElementById('form-msg');
+  btn.disabled=true;
+  document.getElementById('submit-btn-label').textContent='Saving…';
+  btn.querySelector('span') && (btn.innerHTML='<span class="spinner"></span> Saving…');
+  msg.className='hidden';
+
+  const editId=document.getElementById('edit-log-id').value;
+  const data={
+    date:       dateVal,
+    title:      document.getElementById('log-title').value.trim(),
+    hours_spent:parseFloat(document.getElementById('log-hours').value),
+    tags:       document.getElementById('log-tags').value.trim(),
+    description:document.getElementById('log-desc').value.trim(),
+  };
+
+  try{
+    if(editId){
+      const res=await fetchJSON(`${API.UPDATE_LOG}${editId}/`,{method:'PUT',body:JSON.stringify(data)});
+      const updated=res.log||{...data,id:editId};
+      const idx=myLogs.findIndex(l=>String(l.id)===String(editId));
+      if(idx>-1) myLogs[idx]={...myLogs[idx],...updated};
+      else myLogs.unshift(updated);
+      renderRecentLogs();
+      loadStats().catch(()=>{});
+      msg.className='form-success'; msg.innerHTML='✅ Log updated successfully!';
+      showToast('✅ Log updated!');
+    } else {
+      const res=await fetchJSON(API.ADD_LOG,{method:'POST',body:JSON.stringify(data)});
+      const newLog=res.log||{...data,id:'local-'+Date.now()};
+      myLogs.unshift(newLog);
+      renderRecentLogs();
+      loadStats().catch(()=>{});
+      msg.className='form-success'; msg.innerHTML='✅ Log submitted successfully!';
+      showToast('✅ Log saved!');
+    }
+    resetForm();
+  }catch(err){
+    msg.className='form-error'; msg.innerHTML=`❌ Failed to save log<br><small>${err.message}</small>`;
+  }
+  btn.disabled=false; btn.innerHTML='<span id="submit-btn-label">Submit Log</span>';
+}
+
+function resetForm(){
+  document.getElementById('log-form').reset();
+  document.getElementById('edit-log-id').value='';
+  document.getElementById('log-date').value=todayStr;
+  document.getElementById('form-msg').className='hidden';
+  document.getElementById('date-error').classList.add('hidden');
+  document.getElementById('edit-mode-banner').classList.add('hidden');
+  const lbl=document.getElementById('submit-btn-label');
+  if(lbl) lbl.textContent='Submit Log';
+  document.getElementById('submit-btn').disabled=false;
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  document.getElementById('cal-label').textContent=`${MONTHS_FULL[calMonth]} ${calYear}`;
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=DAYS_SHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  for(let i=0;i<first;i++)grid.innerHTML+=`<div class="cal-cell other"></div>`;
+  for(let d=1;d<=days;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cnt=myLogs.filter(l=>l.date===ds).length;
+    const isT=ds===todayStr, isS=ds===selDate;
+    grid.innerHTML+=`<div class="cal-cell${isT?' today':''}${isS?' sel':''}${cnt>0?' haslog':''}" onclick="selectDate('${ds}')">
+      <div class="cal-num">${isT?`<span class="today-badge">${d}</span>`:d}</div>
+      ${cnt>0?`<div class="cal-dots">${Array(Math.min(cnt,4)).fill('<div class="cal-dot"></div>').join('')}</div><div class="cal-cnt">${cnt} log${cnt>1?'s':''}</div>`:''}
+    </div>`;
+  }
+}
+
+function selectDate(ds){ selDate=ds; renderCalendar(); renderDayPanel(ds); }
+
+function renderDayPanel(ds){
+  const dayLogs=myLogs.filter(l=>l.date===ds);
+  document.getElementById('day-title').textContent=fmtDateLong(ds);
+  document.getElementById('day-sub').textContent=dayLogs.length===0?'No logs for this date.':`${dayLogs.length} log${dayLogs.length>1?'s':''} — click to expand`;
+  document.getElementById('day-entries').innerHTML=dayLogs.length===0
+    ?`<div class="empty-state"><div class="empty-icon">📭</div><p>No logs for this day.</p></div>`
+    :dayLogs.map(l=>`<div class="day-entry" id="de-${l.id}" onclick="toggleDayEntry('${l.id}')">
+        <div class="day-entry-header">
+          <div class="day-entry-title">${l.title}</div>
+          <div class="day-entry-meta">${tagsHTML(l.tags,l.hours_spent||0)}<span class="expand-icon">▾</span></div>
+        </div>
+        <div class="day-entry-desc">${l.description||'No description.'}</div>
+      </div>`).join('');
+}
+function toggleDayEntry(id){ document.getElementById('de-'+id)?.classList.toggle('expanded'); }
+
+async function loadTeamActivity(){
+  const el=document.getElementById('team-feed');
+  el.innerHTML=`<div class="empty-state"><div class="spinner"></div></div>`;
+  try{
+    const logs=await fetchJSON(API.TEAM_LOGS);
+    renderTeamFeed(logs);
+  }catch(e){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-title">Failed to load</div></div>`;
+  }
+}
+
+function renderTeamFeed(logs){
+  const el=document.getElementById('team-feed');
+  if(!logs||!logs.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🌙</div><div class="empty-title">All quiet!</div><p>No team logs in the past 24 hours.</p></div>`;
+    return;
+  }
+  const isNew=iso=>(Date.now()-new Date(iso).getTime())<3*3600*1000;
+  el.innerHTML=`<div class="activity-feed">${logs.map(l=>`
+    <div class="activity-item">
+      <div class="a-avatar" style="background:${l.member_color||'#3a6b4d'}">${initials(l.member_name)}</div>
+      <div class="a-body">
+        <div class="a-name">${l.member_name}</div>
+        <div class="a-title">${l.title}</div>
+        <div class="a-desc">${l.description||''}</div>
+        <div class="a-time">⏱ ${l.hours_spent||0}h · ${timeAgo(l.created_at)}</div>
+        <div style="margin-top:8px">${tagsHTML(l.tags,0)}</div>
+      </div>
+      <div class="a-right">${isNew(l.created_at)?'<span class="new-badge">NEW</span>':''}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function closeModal(e){ if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open'); }
+function openLogoutModal(){ document.getElementById('logout-modal').classList.add('open'); }
+function closeLogoutModal(){ document.getElementById('logout-modal').classList.remove('open'); }
+async function doLogout(){
+  try{ await fetch('/logout/',{method:'POST',credentials:'include',headers:{'X-CSRFToken':getCookie('csrftoken')||''}}); }catch(e){}
+  window.location.href='/';
+}
+
+let toastTimer;
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3000); }
+
+// ─────────────────────────────────────────
+// AI REPORT PANEL
+// ─────────────────────────────────────────
+let reportData = { start_date:null, end_date:null, missing_dates:[] };
+
+function reportShowMsg(elId, msg, isError){
+  const el=document.getElementById(elId);
+  el.textContent=msg;
+  el.className=isError?'form-error':'form-success';
+  el.classList.remove('hidden');
+}
+
+function reportSetStep(step){
+  document.getElementById('report-step-range').classList.toggle('hidden', step!=='range');
+  document.getElementById('report-step-missing').classList.toggle('hidden', step!=='missing');
+  document.getElementById('report-step-output').classList.toggle('hidden', step!=='output');
+}
+
+async function reportCheckRange(){
+  const start=document.getElementById('report-start').value;
+  const end  =document.getElementById('report-end').value;
+  const msgEl=document.getElementById('report-step1-msg');
+  msgEl.classList.add('hidden');
+
+  if(!start || !end){
+    return reportShowMsg('report-step1-msg','Please select both dates.',true);
+  }
+
+  const btn=document.getElementById('report-check-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Checking…';
+  try{
+    const res=await fetchJSON(API.REPORT_CHECK,{method:'POST',body:JSON.stringify({start_date:start,end_date:end})});
+    reportData.start_date=res.start_date;
+    reportData.end_date=res.end_date;
+    reportData.missing_dates=res.missing_dates;
+
+    if(res.missing_dates.length>0){
+      const list=document.getElementById('report-missing-list');
+      list.innerHTML=res.missing_dates.map(d=>`
+        <div class="form-group">
+          <label class="form-label">${fmtDateLong(d)} — no log entry. Reason / what happened?</label>
+          <input type="text" class="form-input report-reason-input" data-date="${d}" placeholder="e.g. On leave, college work, holiday…"/>
+        </div>
+      `).join('');
+      reportSetStep('missing');
+    }else{
+      await reportGenerate();
+    }
+  }catch(e){
+    reportShowMsg('report-step1-msg',`Failed: ${e.message}`,true);
+  }finally{
+    btn.disabled=false; btn.innerHTML='Continue';
+  }
+}
+
+function reportBackToRange(){
+  reportSetStep('range');
+}
+
+function reportCollectReasons(){
+  const reasons={};
+  document.querySelectorAll('.report-reason-input').forEach(inp=>{
+    reasons[inp.dataset.date]=inp.value.trim();
+  });
+  return reasons;
+}
+
+async function reportGenerate(){
+  const missing_reasons=reportCollectReasons();
+  const btn=document.getElementById('report-generate-btn')||document.getElementById('report-check-btn');
+  const originalLabel=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Generating…';
+
+  document.getElementById('report-step2-msg')?.classList.add('hidden');
+  document.getElementById('report-step1-msg')?.classList.add('hidden');
+
+  try{
+    const res=await fetchJSON(API.REPORT_GENERATE,{method:'POST',body:JSON.stringify({
+      start_date: reportData.start_date,
+      end_date:   reportData.end_date,
+      missing_reasons,
+    })});
+    document.getElementById('report-output').textContent=res.report;
+    document.getElementById('report-feedback').value='';
+    reportSetStep('output');
+  }catch(e){
+    const target = document.getElementById('report-step-missing').classList.contains('hidden')
+      ? 'report-step1-msg' : 'report-step2-msg';
+    reportShowMsg(target,`Failed: ${e.message}`,true);
+  }finally{
+    btn.disabled=false; btn.innerHTML=originalLabel;
+  }
+}
+
+async function reportRegenerate(){
+  const feedback=document.getElementById('report-feedback').value.trim();
+  if(!feedback){
+    return reportShowMsg('report-step3-msg','Please describe what you want changed.',true);
+  }
+  const btn=document.getElementById('report-regen-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Regenerating…';
+  document.getElementById('report-step3-msg').classList.add('hidden');
+
+  try{
+    const res=await fetchJSON(API.REPORT_GENERATE,{method:'POST',body:JSON.stringify({
+      start_date: reportData.start_date,
+      end_date:   reportData.end_date,
+      missing_reasons: reportCollectReasons(),
+      feedback,
+    })});
+    document.getElementById('report-output').textContent=res.report;
+    showToast('✅ Report regenerated!');
+  }catch(e){
+    reportShowMsg('report-step3-msg',`Failed: ${e.message}`,true);
+  }finally{
+    btn.disabled=false; btn.innerHTML='Regenerate with feedback';
+  }
+}
+
+function reportStartOver(){
+  document.getElementById('report-start').value='';
+  document.getElementById('report-end').value='';
+  document.getElementById('report-output').textContent='';
+  document.getElementById('report-feedback').value='';
+  reportData={start_date:null,end_date:null,missing_dates:[]};
+  reportSetStep('range');
+}
+
+  const aiSuggestBtn = document.getElementById('ai-suggest-btn');
+  const suggestBtnText = document.getElementById('suggest-btn-text');
+  const aiSuggestionBox = document.getElementById('ai-suggestion-box');
+  const aiSuggestionTitle = document.getElementById('ai-suggestion-title');
+  const aiSuggestionTags = document.getElementById('ai-suggestion-tags');
+  const aiSuggestionText = document.getElementById('ai-suggestion-text');
+  const useTitleBtn = document.getElementById('use-title-btn');
+  const useTagsBtn = document.getElementById('use-tags-btn');
+  const useDescriptionBtn = document.getElementById('use-description-btn');
+  const regenBtn = document.getElementById('regenerate-btn');
+  const dismissSuggestionBtn = document.getElementById('dismiss-suggestion-btn');
+  const titleInput = document.getElementById('log-title');
+  const tagsInput = document.getElementById('log-tags');
+  const descriptionTextarea = document.getElementById('log-desc');
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
+
+  async function fetchDescriptionSuggestion() {
+    const title = titleInput?.value.trim();
+    if (!title) {
+      alert('Please enter a log title first, then click Suggest Description.');
+      titleInput?.focus();
+      return;
+    }
+
+    suggestBtnText.textContent = 'Generating...';
+    aiSuggestBtn.disabled = true;
+    aiSuggestionBox.style.display = 'none';
+
+    try {
+      const res = await fetch('{% url "ai_suggest_log_description" %}', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          title,
+          mood: '',
+          hours: document.getElementById('log-hours')?.value.trim() || '',
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      aiSuggestionTitle.textContent = data.title || title;
+      aiSuggestionTags.textContent = data.tags ? `Tags: ${data.tags}` : '';
+      aiSuggestionText.textContent = data.description || 'No suggestion available. Try again with a clearer title.';
+
+      aiSuggestionTitle.style.display = data.title ? 'block' : 'none';
+      aiSuggestionTags.style.display = data.tags ? 'block' : 'none';
+      aiSuggestionBox.style.display = 'block';
+      aiSuggestionBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (error) {
+      alert(error.message || 'Could not generate a suggestion. Try again.');
+    } finally {
+      suggestBtnText.textContent = 'Suggest Description with AI';
+      aiSuggestBtn.disabled = false;
+    }
+  }
+
+  aiSuggestBtn?.addEventListener('click', fetchDescriptionSuggestion);
+  regenBtn?.addEventListener('click', fetchDescriptionSuggestion);
+  useTitleBtn?.addEventListener('click', () => {
+    if (aiSuggestionTitle.textContent) {
+      titleInput.value = aiSuggestionTitle.textContent;
+    }
+  });
+  useTagsBtn?.addEventListener('click', () => {
+    if (aiSuggestionTags.textContent) {
+      tagsInput.value = aiSuggestionTags.textContent.replace(/^Tags:\s*/i, '');
+    }
+  });
+  useDescriptionBtn?.addEventListener('click', () => {
+    descriptionTextarea.value = aiSuggestionText.textContent;
+    aiSuggestionBox.style.display = 'none';
+    descriptionTextarea.focus();
+  });
+  dismissSuggestionBtn?.addEventListener('click', () => {
+    aiSuggestionBox.style.display = 'none';
+  });
+
+  // Initialize
+  init();
+</script>
+</body>
+</html>

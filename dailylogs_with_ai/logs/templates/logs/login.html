@@ -1,0 +1,328 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Logs – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{height:100vh;display:flex;}
+.left{flex:1.5;background:linear-gradient(135deg,#4e73df,#6f42c1);color:white;display:flex;flex-direction:column;justify-content:center;padding:60px;}
+.left h3{font-size:14px;letter-spacing:2px;opacity:0.7;margin-bottom:10px;}
+.left h1{font-size:32px;line-height:1.5;}
+.right{flex:1;background:#f5f6fa;display:flex;justify-content:center;align-items:center;}
+.container{width:340px;background:white;padding:30px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);text-align:center;}
+.container h2{margin-bottom:15px;color:#333;}
+.toggle-btns{display:flex;margin-bottom:20px;}
+.toggle-btns button{flex:1;padding:10px;border:none;background:#e0e6f7;cursor:pointer;font-weight:600;}
+.toggle-btns button.active{background:#4e73df;color:white;}
+.role-select{display:flex;margin-bottom:10px;}
+.role-btn{flex:1;padding:10px;border:none;background:#e0e6f7;cursor:pointer;font-weight:600;}
+.role-btn.active{background:#4e73df;color:white;}
+input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ddd;outline:none;}
+.submit-btn{width:100%;padding:10px;margin-top:12px;background:#4e73df;color:white;border:none;border-radius:6px;cursor:pointer;font-size:15px;}
+.message{color:red;margin-bottom:10px;font-size:14px;}
+.message.success{color:green;}
+
+/* ── NEW: Forgot / Change Password link & panels ── */
+.extra-links{margin-top:14px;font-size:13px;color:#666;}
+.extra-links a{color:#4e73df;cursor:pointer;text-decoration:none;margin:0 6px;}
+.extra-links a:hover{text-decoration:underline;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+.back-link{display:inline-block;margin-bottom:12px;font-size:13px;color:#4e73df;cursor:pointer;}
+.back-link:hover{text-decoration:underline;}
+
+.otp-row{display:flex;gap:8px;margin:8px 0;}
+.otp-row input{flex:1;text-align:center;letter-spacing:4px;font-size:18px;}
+.otp-row button{padding:10px 14px;background:#4e73df;color:white;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:13px;}
+.otp-row button:disabled{background:#aaa;cursor:not-allowed;}
+
+.info-note{font-size:12px;color:#888;margin:4px 0 10px;}
+
+/* ── END NEW ── */
+
+@media screen and (max-width: 768px){
+  .main{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid #1f2937;}
+  .content{padding:16px;}
+  .stats-grid{grid-template-columns:1fr;}
+  .members-grid{grid-template-columns:1fr;}
+  .profile-hero{flex-direction:column;align-items:center;text-align:center;}
+  .profile-stats{justify-content:center;}
+  .all-entry-card{flex-direction:column;}
+  .cal-grid{gap:3px;}
+  .cal-cell{min-height:60px;padding:4px;}
+  .page-title{font-size:22px;}
+  .topbar{padding:0 12px;}
+  .user-name{display:none;}
+  .filter-bar{flex-direction:column;}
+  .filter-bar input,.filter-bar select{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="left">
+  <h3>PRODUCTIVITY</h3>
+  <h1>Daily Logs System <br>Track Work. Improve Daily. <br>Stay Consistent.</h1>
+</div>
+
+<div class="right">
+  <div class="container">
+    <h2 id="formTitle">Login</h2>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="message {% if message.tags == 'success' %}success{% endif %}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <!-- ════════════════════════════════
+         PANEL: Login / Signup (default)
+         ════════════════════════════════ -->
+    <div id="authPanel" class="panel active">
+
+      <!-- TOGGLE -->
+      <div class="toggle-btns">
+        <button id="loginToggle" class="active" onclick="showLogin()">Login</button>
+        <button id="signupToggle" onclick="showSignup()">Sign Up</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form method="POST" action="{% url 'login_post' %}" id="loginForm">
+        {% csrf_token %}
+        <div class="role-select">
+          <button type="button" class="role-btn" id="memberBtn" onclick="selectRole('member')">Member</button>
+          <button type="button" class="role-btn" id="mentorBtn" onclick="selectRole('mentor')">Mentor</button>
+        </div>
+        <input type="hidden" name="role" id="roleInput">
+        <input type="text"     name="username"  placeholder="Username" required>
+        <input type="password" name="password"  placeholder="Password" required>
+        <button type="submit" class="submit-btn">Login</button>
+      </form>
+
+      <!-- SIGNUP FORM -->
+      <form method="POST" action="{% url 'signup' %}" id="signupForm" style="display:none;">
+        {% csrf_token %}
+        <input type="text"     name="username" placeholder="Username" required>
+        <input type="email"    name="email"    placeholder="Email"    required>
+        <input type="text"     name="college"  placeholder="College"  required>
+        <input type="password" name="password" placeholder="Password" required>
+        <div class="role-select">
+          <button type="button" class="role-btn" id="signupMemberBtn" onclick="setSignupRole('member')">Member</button>
+          <button type="button" class="role-btn" id="signupMentorBtn" onclick="setSignupRole('mentor')">Mentor</button>
+        </div>
+        <input type="hidden" name="role" id="signupRole">
+        <button type="submit" class="submit-btn">Sign Up</button>
+      </form>
+
+      <!-- Extra links -->
+      <div class="extra-links">
+        <a onclick="showForgotPanel()">Forgot Password?</a> |
+        <a onclick="showChangePanel()">Change Password</a>
+      </div>
+    </div><!-- /authPanel -->
+
+
+    <!-- ════════════════════════════════
+         PANEL: Forgot Password (OTP flow)
+         ════════════════════════════════ -->
+    <div id="forgotPanel" class="panel">
+      <span class="back-link" onclick="showAuthPanel()">← Back to Login</span>
+
+      <!-- Step 1: enter email -->
+      <div id="forgotStep1">
+        <p style="font-size:13px;color:#555;margin-bottom:12px;">
+          Enter the email you registered with. We'll send a 6-digit OTP.
+        </p>
+        <form method="POST" action="{% url 'forgot_send_otp' %}" id="forgotEmailForm">
+          {% csrf_token %}
+          <input type="email" name="email" id="forgotEmail" placeholder="Registered Email" required>
+          <button type="submit" class="submit-btn">Send OTP</button>
+        </form>
+        <!-- JS fallback: resend timer shown after OTP sent -->
+      </div>
+
+      <!-- Step 2: verify OTP + set new password
+           (shown by Django after redirect, or via JS if you prefer SPA-style) -->
+      <div id="forgotStep2" style="display:none;">
+        <p class="info-note">OTP sent! Check your inbox (valid 10 min).</p>
+        <form method="POST" action="{% url 'forgot_verify_otp' %}" id="forgotOtpForm">
+          {% csrf_token %}
+          <input type="hidden" name="email" id="forgotEmailHidden">
+          <div class="otp-row">
+            <input type="text" name="otp" id="otpInput" maxlength="6" placeholder="_ _ _ _ _ _" required>
+            <button type="button" id="resendBtn" onclick="resendOTP()" disabled>Resend</button>
+          </div>
+          <p class="info-note" id="resendTimer">Resend in <span id="countdown">60</span>s</p>
+          <input type="password" name="new_password"     placeholder="New Password"     required>
+          <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+          <button type="submit" class="submit-btn">Reset Password</button>
+        </form>
+      </div>
+    </div><!-- /forgotPanel -->
+
+
+    <!-- ════════════════════════════════
+         PANEL: Change Password
+         ════════════════════════════════ -->
+    <div id="changePanel" class="panel">
+      <span class="back-link" onclick="showAuthPanel()">← Back to Login</span>
+      <p style="font-size:13px;color:#555;margin-bottom:12px;">
+        Enter your username, current password, and choose a new one.
+      </p>
+      <form method="POST" action="{% url 'change_password' %}" id="changeForm"
+            onsubmit="return validateChange()">
+        {% csrf_token %}
+        <input type="text"     name="username"        placeholder="Username"         required>
+        <input type="password" name="old_password"    placeholder="Current Password" required>
+        <input type="password" name="new_password"    id="cpNew"    placeholder="New Password"     required>
+        <input type="password" name="confirm_password" id="cpConfirm" placeholder="Confirm New Password" required>
+        <p id="changeErr" style="color:red;font-size:13px;display:none;">Passwords do not match.</p>
+        <button type="submit" class="submit-btn">Update Password</button>
+      </form>
+    </div><!-- /changePanel -->
+
+  </div><!-- /container -->
+</div><!-- /right -->
+
+<script>
+/* ── Panel switchers ── */
+function showPanel(id){
+  ['authPanel','forgotPanel','changePanel'].forEach(p=>{
+    document.getElementById(p).classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+  const titles={authPanel:'Login',forgotPanel:'Forgot Password',changePanel:'Change Password'};
+  document.getElementById('formTitle').innerText=titles[id];
+}
+function showAuthPanel(){showPanel('authPanel');}
+function showForgotPanel(){showPanel('forgotPanel');}
+function showChangePanel(){showPanel('changePanel');}
+
+/* ── Login / Signup toggle (unchanged) ── */
+function showSignup(){
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('signupForm').style.display='block';
+  document.getElementById('formTitle').innerText='Sign Up';
+  document.getElementById('loginToggle').classList.remove('active');
+  document.getElementById('signupToggle').classList.add('active');
+}
+function showLogin(){
+  document.getElementById('loginForm').style.display='block';
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('formTitle').innerText='Login';
+  document.getElementById('signupToggle').classList.remove('active');
+  document.getElementById('loginToggle').classList.add('active');
+}
+function selectRole(role){
+  document.getElementById('roleInput').value=role;
+  document.getElementById('memberBtn').classList.toggle('active',role==='member');
+  document.getElementById('mentorBtn').classList.toggle('active',role==='mentor');
+}
+function setSignupRole(role){
+  document.getElementById('signupRole').value=role;
+  document.getElementById('signupMemberBtn').classList.toggle('active',role==='member');
+  document.getElementById('signupMentorBtn').classList.toggle('active',role==='mentor');
+}
+document.querySelector('#loginForm').onsubmit=function(){
+  if(!document.getElementById('roleInput').value){alert('Please select a role');return false;}
+};
+document.querySelector('#signupForm').onsubmit=function(){
+  if(!document.getElementById('signupRole').value){alert('Please select a role');return false;}
+};
+
+/* ── Forgot Password: step transition ── */
+var countdownTimer=null;
+
+document.getElementById('forgotEmailForm').onsubmit=function(e){
+  /* If you want a full-page POST, remove this block entirely.
+     This JS version shows step 2 inline without a page reload. */
+  e.preventDefault();
+  var email=document.getElementById('forgotEmail').value.trim();
+  if(!email)return;
+
+  /* POST to Django via fetch */
+  var fd=new FormData(this);
+  fetch(this.action,{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>r.json())
+    .then(function(data){
+      if(data.success){
+        document.getElementById('forgotEmailHidden').value=email;
+        document.getElementById('forgotStep1').style.display='none';
+        document.getElementById('forgotStep2').style.display='block';
+        startCountdown();
+      } else {
+        alert(data.error || 'Could not send OTP. Please try again.');
+      }
+    })
+    .catch(function(){
+      /* Fallback: let the form do a normal POST */
+      document.getElementById('forgotEmailForm').submit();
+    });
+};
+
+function startCountdown(){
+  var secs=60;
+  document.getElementById('resendBtn').disabled=true;
+  document.getElementById('resendTimer').style.display='block';
+  clearInterval(countdownTimer);
+  countdownTimer=setInterval(function(){
+    secs--;
+    document.getElementById('countdown').innerText=secs;
+    if(secs<=0){
+      clearInterval(countdownTimer);
+      document.getElementById('resendBtn').disabled=false;
+      document.getElementById('resendTimer').style.display='none';
+    }
+  },1000);
+}
+
+function resendOTP(){
+  var email=document.getElementById('forgotEmailHidden').value;
+  var csrfToken=document.querySelector('#forgotEmailForm [name=csrfmiddlewaretoken]').value;
+  var fd=new FormData();
+  fd.append('email',email);
+  fd.append('csrfmiddlewaretoken',csrfToken);
+  fetch("{% url 'forgot_send_otp' %}",{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>r.json())
+    .then(function(data){
+      if(data.success){startCountdown();}
+      else{alert(data.error||'Failed to resend OTP.');}
+    });
+}
+
+/* ── Change Password: client-side confirm match ── */
+function validateChange(){
+  var np=document.getElementById('cpNew').value;
+  var cp=document.getElementById('cpConfirm').value;
+  if(np!==cp){
+    document.getElementById('changeErr').style.display='block';
+    return false;
+  }
+  document.getElementById('changeErr').style.display='none';
+  return true;
+}
+
+/* ── If Django redirected back with ?panel=forgot&step=2 ── */
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('panel')==='forgot'){
+    showForgotPanel();
+    if(params.get('step')==='2'){
+      document.getElementById('forgotStep1').style.display='none';
+      document.getElementById('forgotStep2').style.display='block';
+      document.getElementById('forgotEmailHidden').value=params.get('email')||'';
+      startCountdown();
+    }
+  }
+  if(params.get('panel')==='change'){showChangePanel();}
+})();
+</script>
+</body>
+</html>
