@@ -1,0 +1,5 @@
+Django>=4.2
+gunicorn
+python-dotenv
+openai
+requests
