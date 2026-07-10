@@ -1,5 +1,0 @@
-Django
-gunicorn
-python-dotenv
-whitenoise
-requests
