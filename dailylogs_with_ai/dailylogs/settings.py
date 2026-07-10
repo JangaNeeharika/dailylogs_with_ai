@@ -10,11 +10,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 SECRET_KEY = 'django-insecure-change-this-in-production-xyz123'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    "dailylogs-with-ai.vercel.app",
-    ".vercel.app",
+    '*'
 ]
 
 INSTALLED_APPS = [
